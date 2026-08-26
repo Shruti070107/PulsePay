@@ -40,6 +40,35 @@ const paymentEventSchema = new mongoose.Schema(
       required: true,
       default: Date.now,
     },
+    merchantId: {
+      type: String,
+      index: true,
+    },
+    customerId: {
+      type: String,
+    },
+    orderId: {
+      type: String,
+      index: true,
+    },
+    amount: {
+      type: Number,
+    },
+    currency: {
+      type: String,
+      default: 'INR',
+    },
+    provider: {
+      type: String,
+      default: 'gateway_mock',
+    },
+    attempt: {
+      type: Number,
+      default: 1,
+    },
+    eventType: {
+      type: String,
+    },
     metadata: {
       type: mongoose.Schema.Types.Mixed,
       default: {},

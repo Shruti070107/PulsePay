@@ -1,42 +1,47 @@
-# PulsePay — Upgraded 3-Minute E2E Demo Script
+# PulsePay 3-Minute Live Demo Script
 
-This script walks through demonstrating the upgraded Evidence-Driven platform.
+## 1. Executive Setup
 
----
-
-### [00:00–00:45] Introduction & Platform Upgrades
-* **Action**: Open the **PulsePay Dashboard** (`http://localhost:5173/`).
-* **Talking Points**:
-  > "I am demonstrating **PulsePay**, an AI-assisted payment incident intelligence system.
-  > Today, we have upgraded PulsePay into an **Evidence-Driven AI Payment Incident Intelligence Platform**.
-  > Instead of just alerting that an incident occurred, PulsePay now reconstructs what happened, visualizes the causal chain, calculates blast radius metrics, scores confidence deterministically, and provides interactive checklists for operators."
+Open the PulsePay Web Application at `http://localhost:5173`.
 
 ---
 
-### [00:45–01:30] One-Click E2E Demo Mode
-* **Action**: Navigate to the **Developer Console**, and click **Activate E2E Demo Mode**. Point out the terminal logs outputting database clearing, seeding, aggregation scans, and Isolation Forest retraining.
-* **Talking Points**:
-  > "I will activate our integrated E2E Demo Mode.
-  > This action safely clears the database, seeds a controlled batch of 27 transactions (including webhook drops and duplicate pairs), executes aggregation scans, and retrains our ML model in the background.
-  > Now we are redirected to our refreshed dashboard."
+## 2. Walkthrough Steps
 
----
+### Step 1: Revenue Recovery Command Center (`/`)
+1. Point to **Revenue at Risk** (e.g. `₹48,500`), **Estimated Recoverable** (`₹36,200`), and **Recovery Rate**.
+2. Explain the **Next Best Recovery Opportunity** card:
+   - "PulsePay identifies the highest-yield failed payment, calculates its recovery probability and expected value, and selects the safest recovery strategy."
+3. Highlight the **AI Recovery Agent Briefing** panel with transparent action breakdowns (Retries vs Recovery Links vs Webhook Reconciliations vs Safety Blocked items).
+4. Click **"Run Recovery Demo"** to see live end-to-end multi-scenario failure ingestion, simulation, and synthetic execution.
 
-### [01:30–02:30] Deep-Dive Incident Intelligence & Causal Graphs
-* **Action**: Navigate to the **Incidents** list, and open the first **CAPTURED_ORDER_UNPAID** incident.
-* **Talking Points**:
-  > "Here, we check the incident workspace.
-  > On top, we see the **Blast Radius Exposure** calculations: affected transactions, customers, unique merchants, orders, duration, and failure rates.
-  > We see our **Signal Fusion**: deterministic severity matching with ML anomaly outlier weights.
-  > The **Causal Graph** visualizes the failure path: Ingest -> Capture -> Webhook Drops -> Mismatch.
-  > The **Chronological timeline** compares logical gateway timestamps with arrival logs, pointing out latencies.
-  > Under **Confidence Breakdown**, we explain the score mathematically (+25 state mismatch, +20 webhook drops)."
+### Step 2: Ranked Recovery Opportunities Queue (`/recovery`)
+1. Navigate to `/recovery`.
+2. Demonstrate multi-filter controls: filter by **Policy Status (Eligible vs Blocked)** or **Classification (Recoverable vs Non-Recoverable)**.
+3. Show how the Expected Value ($EV$) column ranks transactions by net financial yield rather than raw payment volume.
+4. Click **"Analyze →"** on any high-value candidate.
 
----
+### Step 3: Payment Recovery Deep-Dive (`/recovery/:paymentId`)
+1. Walk through the **5-Point Evidence-Grounded Explanation**:
+   - *Why this payment?*
+   - *Why this action?*
+   - *Why now?*
+   - *Why not another action?*
+   - *Why is it safe?*
+2. Point out the **Interactive Recovery Causal Explanation Graph** (Ingestion $\to$ Failure Code $\to$ ML Score $\to$ Policy Gate $\to$ Action $\to$ Expected Yield).
+3. Review the **Safety Policy Verification Checklist** ($\checkmark$ Retry limit $\le 2$, $\checkmark$ Non-duplicate, $\checkmark$ Positive EV).
+4. Click **"Execute Test Recovery"** to demonstrate idempotent synthetic recovery.
 
-### [02:30–03:00] Operator Actions & AI Investigation
-* **Action**: Scroll to the **Operator Actions** panel. Change one action dropdown status to **IN PROGRESS**. Then click **Run Investigation** in the AI card.
-* **Talking Points**:
-  > "Operators can manage resolution tasks inside the checklist, persisting status changes.
-  > Finally, we trigger our AI Investigation to get diagnostic advice, root causes, and unknowns.
-  > This is PulsePay—helping payment teams trace, explain, and recover from failures safely."
+### Step 4: Campaigns & Strategy What-If Studio (`/campaigns`)
+1. Navigate to `/campaigns`.
+2. Inspect the **Side-by-Side What-If Strategy Comparison Matrix**:
+   - Strategy A: Expected Value Optimized
+   - Strategy B: Retry All
+   - Strategy C: High Confidence Only
+   - Strategy D: Digital Recovery Links Only
+3. Compare the net yields, action breakdowns, and policy blocked items.
+4. Review the **Historical Campaign Scorecards** showing Expected vs Actual recovered amounts.
+
+### Step 5: Developer Console & Benchmark Suite (`/dev`)
+1. Navigate to `/dev`.
+2. Click **"Run Benchmark Suite"** to verify 100% policy compliance, 0 hallucinations, and 0 policy violations across 6 canonical test scenarios.

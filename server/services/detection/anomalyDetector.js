@@ -12,21 +12,33 @@ const scanPaymentsForAnomalies = async (timeWindowHours = 24) => {
 
   const payments = await Payment.find(query);
   const signals = [];
+  const merchantBaselineCache = new Map();
 
-  for (const payment of payments) {
+  const getCachedBaseline = async (merchantId) => {
+    if (!merchantId) return null;
+    if (merchantBaselineCache.has(merchantId)) {
+      return merchantBaselineCache.get(merchantId);
+    }
+    const b = await calculateMerchantBaseline(merchantId).catch(() => null);
+    merchantBaselineCache.set(merchantId, b);
+    return b;
+  };
+
+  const processPayment = async (payment) => {
     try {
-      const stateResult = await reconstructFullState(payment.paymentId);
-      const mlResult = await predictAnomaly(payment.paymentId);
+      const [stateResult, mlResult, baseline] = await Promise.all([
+        reconstructFullState(payment.paymentId),
+        predictAnomaly(payment.paymentId),
+        getCachedBaseline(payment.merchantId)
+      ]);
       
       const isDeterministicAnomaly = stateResult.overallState !== 'HEALTHY';
       const isMLAnomaly = mlResult.is_anomaly;
 
-      // Calculate merchant baselines for Amount Anomaly detection
-      const baseline = await calculateMerchantBaseline(payment.merchantId);
       let isAmountAnomaly = false;
       let amountEvidence = null;
 
-      if (baseline && baseline.success) {
+      if (baseline && baseline.success && baseline.stdDev > 0) {
         const zScore = Math.abs(payment.amount - baseline.averageAmount) / baseline.stdDev;
         if (zScore > 2.5) {
           isAmountAnomaly = true;
@@ -64,7 +76,7 @@ const scanPaymentsForAnomalies = async (timeWindowHours = 24) => {
           signalType = 'STATISTICALLY_ANOMALOUS';
         }
 
-        signals.push({
+        return {
           paymentId: payment.paymentId,
           customerId: stateResult.customerId,
           merchantId: stateResult.merchantId,
@@ -77,11 +89,19 @@ const scanPaymentsForAnomalies = async (timeWindowHours = 24) => {
           failureCode,
           endpoint,
           evidence
-        });
+        };
       }
     } catch (err) {
       console.error(`Error scanning payment ${payment.paymentId}:`, err.message);
     }
+    return null;
+  };
+
+  const CHUNK_SIZE = 10;
+  for (let i = 0; i < payments.length; i += CHUNK_SIZE) {
+    const chunk = payments.slice(i, i + CHUNK_SIZE);
+    const chunkResults = await Promise.all(chunk.map(processPayment));
+    chunkResults.filter(Boolean).forEach(s => signals.push(s));
   }
 
   return signals;

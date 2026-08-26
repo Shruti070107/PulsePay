@@ -17,7 +17,7 @@ app.use(express.json());
 const mlClient = require('./services/ml/mlClient');
 
 // Health Check Endpoint
-app.get('/api/health', async (req, res) => {
+app.get(['/health', '/api/health'], async (req, res) => {
   const dbStatus = mongoose.connection.readyState;
   const dbStates = {
     0: 'Disconnected',
@@ -68,9 +68,11 @@ const simulatorRoutes = require('./routes/simulatorRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const incidentRoutes = require('./routes/incidentRoutes');
 const mlRoutes = require('./routes/mlRoutes');
+const recoveryRoutes = require('./routes/recoveryRoutes');
 const { router: transactionRoutes } = require('./routes/transactionRoutes');
 
 // Routes
+app.use('/api/recovery', recoveryRoutes);
 app.use('/api/simulator', simulatorRoutes);
 app.use('/api/incidents', incidentRoutes);
 app.use('/api/ml', mlRoutes);

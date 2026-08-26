@@ -1,6 +1,6 @@
 const Incident = require('../../models/Incident');
 const { scanPaymentsForAnomalies } = require('../detection/anomalyDetector');
-const { groupSignalsIntoIncidents } = require('./correlationEngine');
+const { groupSignalsIntoIncidents, generateGroupingRationale } = require('./correlationEngine');
 const { analyzeImpact } = require('./impactAnalyzer');
 const { randomId } = require('../../utils/idGenerator');
 
@@ -41,6 +41,19 @@ const runIncidentDetectionAndAggregation = async (timeWindowHours = 24) => {
     const mappedType = mapStateToIncidentType(leader.type, leader.webhookState);
     const impact = analyzeImpact(group);
 
+    // Grouping Rationale, Primary/Secondary signals, Possible Root Causes
+    const groupingRationale = generateGroupingRationale(group);
+    const primarySignals = Array.from(new Set(group.map(s => s.type)));
+    const secondarySignals = Array.from(new Set(group.map(s => s.failureCode).filter(Boolean)));
+    const possibleRootCauses = [
+      leader.failureCode ? `Gateway endpoint response failure code: ${leader.failureCode}` : 'Gateway/Network processing latency timeout',
+      leader.type === 'DUPLICATE_RISK' ? 'Idempotent key missing from transaction request header' : 'Webhooks delivery retry threshold exceeded'
+    ];
+
+    // Split evidence into deterministic vs statistical
+    const deterministicEvidence = impact.evidence.filter(e => !e.includes('Machine learning') && !e.includes('Anomaly Score'));
+    const statisticalEvidence = impact.evidence.filter(e => e.includes('Machine learning') || e.includes('Anomaly Score') || e.includes('Z-score') || e.includes('average amount'));
+
     // Try to find an existing active/investigating incident of the same type & status
     let incidentDoc = await Incident.findOne({
       type: mappedType,
@@ -58,6 +71,10 @@ const runIncidentDetectionAndAggregation = async (timeWindowHours = 24) => {
       // Merge evidence
       const mergedEvidence = Array.from(new Set([...incidentDoc.evidence, ...impact.evidence]));
       incidentDoc.evidence = mergedEvidence;
+      incidentDoc.deterministicEvidence = Array.from(new Set([...incidentDoc.deterministicEvidence, ...deterministicEvidence]));
+      incidentDoc.statisticalEvidence = Array.from(new Set([...incidentDoc.statisticalEvidence, ...statisticalEvidence]));
+      incidentDoc.primarySignals = Array.from(new Set([...incidentDoc.primarySignals, ...primarySignals]));
+      incidentDoc.secondarySignals = Array.from(new Set([...incidentDoc.secondarySignals, ...secondarySignals]));
 
       // Adjust amounts and customers (merging counts without double counting)
       const existingTxns = new Set(incidentDoc.transactionIds.slice(0, -impact.transactionIds.length));
@@ -68,6 +85,7 @@ const runIncidentDetectionAndAggregation = async (timeWindowHours = 24) => {
         }
       });
       incidentDoc.affectedAmount = newAmount;
+      incidentDoc.groupingRationale = groupingRationale;
       
       // Save changes
       await incidentDoc.save();
@@ -85,6 +103,12 @@ const runIncidentDetectionAndAggregation = async (timeWindowHours = 24) => {
         'STATISTICALLY_ANOMALOUS': 'Transaction(s) flagged as statistically anomalous by the Isolation Forest model.'
       };
 
+      // Fetch related incidents
+      const relatedIncidents = await Incident.find({
+        type: mappedType,
+        incidentId: { $ne: incidentId }
+      }).limit(3).select('incidentId type severity status affectedTransactions affectedAmount').lean();
+
       await Incident.create({
         incidentId,
         type: mappedType,
@@ -95,6 +119,14 @@ const runIncidentDetectionAndAggregation = async (timeWindowHours = 24) => {
         affectedCustomers: impact.affectedCustomers,
         transactionIds: impact.transactionIds,
         evidence: impact.evidence,
+        deterministicEvidence,
+        statisticalEvidence,
+        aiEvidence: [],
+        primarySignals,
+        secondarySignals,
+        relatedIncidents,
+        possibleRootCauses,
+        groupingRationale,
         rootCause: 'Pending operator review',
         confidence: 1.0,
         recommendation: 'Check merchant endpoint logs, retry scheduler, and bank settlement sheets.',

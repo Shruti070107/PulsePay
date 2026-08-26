@@ -7,10 +7,16 @@ import {
   triggerDemoMode,
   validateDataset,
   importDataset,
-  ingestReplayEvent
+  ingestReplayEvent,
+  getLabScenarios,
+  triggerLabBaseline,
+  runLabScenario,
+  getLabReports,
+  runRecoveryDemo,
+  evaluateRecovery
 } from '../api';
 import { 
-  ShieldAlert, Cpu, Trash2, Sparkles, Upload, Play, Pause, Square, Download, CheckCircle, XCircle, AlertTriangle 
+  ShieldAlert, Cpu, Trash2, Sparkles, Upload, Play, Pause, Square, Download, CheckCircle, XCircle, AlertTriangle, HelpCircle, RefreshCw, FileText, Target, Coins, RotateCcw
 } from 'lucide-react';
 
 const DEMO_DATASETS = {
@@ -40,6 +46,132 @@ const DeveloperConsole = () => {
   const [pastedJson, setPastedJson] = useState('');
   const [parsedRecords, setParsedRecords] = useState([]);
   const [validationReport, setValidationReport] = useState(null);
+  
+  // Payment Scenario Lab & Evaluation States
+  const [labScenarios, setLabScenarios] = useState([]);
+  const [selectedLabScenario, setSelectedLabScenario] = useState('WEBHOOK_OUTAGE');
+  const [labReports, setLabReports] = useState([]);
+  const [labLoading, setLabLoading] = useState(false);
+  const [demoStep, setDemoStep] = useState(0); 
+  const [demoStatusText, setDemoStatusText] = useState('');
+  const [baselineLoading, setBaselineLoading] = useState(false);
+
+  // Revenue Recovery Demo & Benchmark States
+  const [recoveryDemoLoading, setRecoveryDemoLoading] = useState(false);
+  const [recoveryDemoResult, setRecoveryDemoResult] = useState(null);
+  const [recoveryEvalLoading, setRecoveryEvalLoading] = useState(false);
+  const [recoveryEvalResult, setRecoveryEvalResult] = useState(null);
+
+  const handleRunFullRecoveryDemo = async () => {
+    try {
+      setRecoveryDemoLoading(true);
+      addLog('Triggering 1-Click Revenue Recovery Demo Runner...', 'info');
+      addLog('Ingesting multi-scenario synthetic failures (Timeouts, Webhooks, Declines, Duplicates)...', 'info');
+      const res = await runRecoveryDemo();
+      setRecoveryDemoResult(res.data);
+      addLog(`[SUCCESS] Recovery Demo Finished! Salvaged ₹${res.data.actualRecovered.toLocaleString()} (${res.data.recoveryRate}% Recovery Rate).`, 'success');
+    } catch (err) {
+      addLog(`Recovery Demo failed: ${err.message}`, 'critical');
+    } finally {
+      setRecoveryDemoLoading(false);
+    }
+  };
+
+  const handleRunRecoveryBenchmark = async () => {
+    try {
+      setRecoveryEvalLoading(true);
+      addLog('Running Recovery Engine Benchmark Suite across 6 canonical failure scenarios...', 'info');
+      const res = await evaluateRecovery();
+      setRecoveryEvalResult(res.data);
+      addLog(`[SUCCESS] Benchmark Complete: ${res.data.accuracyRate}% Accuracy, ${res.data.policyViolations} Policy Violations.`, 'success');
+    } catch (err) {
+      addLog(`Recovery Benchmark failed: ${err.message}`, 'critical');
+    } finally {
+      setRecoveryEvalLoading(false);
+    }
+  };
+
+  const fetchLabData = async () => {
+    try {
+      const [scenRes, repRes] = await Promise.all([
+        getLabScenarios(),
+        getLabReports()
+      ]);
+      setLabScenarios(scenRes.data || []);
+      setLabReports(repRes.data || []);
+    } catch (err) {
+      console.error("Failed to load scenario lab metadata", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchLabData();
+  }, []);
+
+  const handleGenerateHistoricalBaseline = async () => {
+    try {
+      setBaselineLoading(true);
+      addLog('Triggering Seeded Historical Normal Traffic Generator...', 'info');
+      addLog('DATA ORIGIN: SYNTHETIC SIMULATION - generating 15,000 transactions...', 'info');
+      
+      const res = await triggerLabBaseline(15000, 42);
+      addLog(`[SUCCESS] Seeding complete. Generated ${res.count} historical payments (Origin: ${res.origin}).`, 'success');
+      await fetchLabData();
+    } catch (err) {
+      addLog(`Failed to generate baseline traffic: ${err.message}`, 'critical');
+    } finally {
+      setBaselineLoading(false);
+    }
+  };
+
+  const handleRunLabDemo = async () => {
+    try {
+      setLabLoading(true);
+      setDemoStep(1);
+      setDemoStatusText('STEP 1/10: Resetting Sandbox Database Collections...');
+      addLog('Starting Reproducible Production Incident Demo...', 'info');
+      await new Promise(r => setTimeout(r, 600));
+
+      setDemoStep(2);
+      setDemoStatusText('STEP 2/10: Generating Seeded Normal Baseline Traffic...');
+      addLog('Seeding baseline normal traffic...', 'info');
+      await new Promise(r => setTimeout(r, 600));
+
+      setDemoStep(4);
+      setDemoStatusText(`STEP 4/10: Injecting Scenario: ${selectedLabScenario}...`);
+      addLog(`Injecting failure sequence parameters for: ${selectedLabScenario}`, 'warning');
+      await new Promise(r => setTimeout(r, 600));
+
+      setDemoStep(6);
+      setDemoStatusText('STEP 6/10: Running PulsePay State Reconstruction Pipeline...');
+      addLog('Reconstructing logical payment/order/webhook timeline states...', 'info');
+      await new Promise(r => setTimeout(r, 600));
+
+      setDemoStep(8);
+      setDemoStatusText('STEP 8/10: Running Evidence Fusion & Incident Correlation...');
+      addLog('Running deterministic checks, baseline z-scores, and grouping...', 'info');
+      
+      const runRes = await runLabScenario(selectedLabScenario);
+      await new Promise(r => setTimeout(r, 600));
+
+      setDemoStep(9);
+      setDemoStatusText('STEP 9/10: Running AI Investigator Auditing & Factual Grounding...');
+      addLog('Evaluating AI hypothesis, fact grounding, and evidence coverage...', 'success');
+      await new Promise(r => setTimeout(r, 600));
+
+      setDemoStep(10);
+      setDemoStatusText('STEP 10/10: Scenario Lab Evaluation Complete!');
+      addLog(`[SUCCESS] Lab completed. Produced incident ID: ${runRes.data.actualIncidentId || 'N/A'}. Scorecard Rating: ${runRes.data.scorecard.overallScore}/100`, 'success');
+      
+      await fetchLabData();
+    } catch (err) {
+      addLog(`Scenario Lab demo failed: ${err.message}`, 'critical');
+      setDemoStatusText('Demo Run Failed.');
+    } finally {
+      setLabLoading(false);
+      setTimeout(() => setDemoStep(0), 4000);
+    }
+  };
   
   // Custom Dataset Generator settings
   const [genCount, setGenCount] = useState(10);
@@ -364,6 +496,125 @@ const DeveloperConsole = () => {
         ⚠️ <strong>SYNTHETIC DEMONSTRATION DATA WARNING:</strong> All transaction flows generated in this sandbox are synthetic simulations. Under no circumstances are payment attempts mapped to real financial gateways or card networks.
       </div>
 
+      {/* AI REVENUE RECOVERY DEMO & BENCHMARK PANEL */}
+      <div className="card" style={{ marginBottom: '24px', padding: '18px', border: '1px solid rgba(16, 185, 129, 0.4)', background: 'linear-gradient(180deg, rgba(16,185,129,0.06) 0%, rgba(18,24,36,0.9) 100%)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={18} style={{ color: 'var(--color-healthy)' }} />
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                1-Click AI Revenue Recovery Live Demo & Benchmark Runner
+              </h3>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+              Ingests 30 synthetic transactions across 5 failure scenarios, computes Expected Value, verifies safety gates, and executes test recoveries.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button 
+              className="btn btn-secondary" 
+              onClick={handleRunRecoveryBenchmark}
+              disabled={recoveryEvalLoading}
+              style={{ padding: '7px 14px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Target size={14} />
+              {recoveryEvalLoading ? 'Evaluating...' : 'Run Benchmark Suite'}
+            </button>
+            <button 
+              className="btn btn-primary" 
+              onClick={handleRunFullRecoveryDemo}
+              disabled={recoveryDemoLoading}
+              style={{ 
+                padding: '7px 16px', 
+                fontSize: '0.8rem', 
+                backgroundColor: 'var(--color-healthy)', 
+                color: '#000', 
+                fontWeight: '700',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <Play size={14} fill="currentColor" />
+              {recoveryDemoLoading ? 'Running Demo Pipeline...' : 'Run Live Revenue Recovery Demo'}
+            </button>
+          </div>
+        </div>
+
+        {/* Live Demo Results Summary */}
+        {recoveryDemoResult && (
+          <div style={{ padding: '14px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--color-healthy)', marginTop: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <strong style={{ fontSize: '0.85rem', color: 'var(--color-healthy)' }}>
+                ✔ Live Revenue Recovery Demo Completed (Campaign: {recoveryDemoResult.campaignId})
+              </strong>
+              <span className="badge badge-low" style={{ fontSize: '0.7rem' }}>
+                AI Grounding: {recoveryDemoResult.aiGroundedScore}%
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', fontSize: '0.78rem' }}>
+              <div>
+                <span style={{ color: 'var(--text-secondary)' }}>Revenue at Risk</span>
+                <p style={{ fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--color-critical)', fontSize: '1rem' }}>
+                  ₹{recoveryDemoResult.revenueAtRisk.toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-secondary)' }}>Expected Yield</span>
+                <p style={{ fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--color-info)', fontSize: '1rem' }}>
+                  ₹{recoveryDemoResult.expectedRecovery.toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-secondary)' }}>Actual Recovered</span>
+                <p style={{ fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', fontSize: '1rem' }}>
+                  ₹{recoveryDemoResult.actualRecovered.toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-secondary)' }}>Recovery Rate</span>
+                <p style={{ fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', fontSize: '1rem' }}>
+                  {recoveryDemoResult.recoveryRate}%
+                </p>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-secondary)' }}>Actions Blocked</span>
+                <p style={{ fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--color-warning)', fontSize: '1rem' }}>
+                  {recoveryDemoResult.actionsBlocked} safety gates
+                </p>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
+              <strong>AI Agent Summary: </strong> {recoveryDemoResult.agentSummary}
+            </p>
+          </div>
+        )}
+
+        {/* Benchmark Results Summary */}
+        {recoveryEvalResult && (
+          <div style={{ padding: '14px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--color-info)', marginTop: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <strong style={{ fontSize: '0.85rem', color: 'var(--color-info)' }}>
+                ✔ Recovery Benchmark Evaluation Report
+              </strong>
+              <span className="badge badge-low" style={{ fontSize: '0.7rem' }}>
+                Overall Score: {recoveryEvalResult.overallScore}%
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', fontSize: '0.78rem' }}>
+              <div><span>Scenarios Tested:</span> <strong>{recoveryEvalResult.scenariosTested}</strong></div>
+              <div><span>Accuracy Rate:</span> <strong style={{ color: 'var(--color-healthy)' }}>{recoveryEvalResult.accuracyRate}%</strong></div>
+              <div><span>Policy Violations:</span> <strong style={{ color: recoveryEvalResult.policyViolations === 0 ? 'var(--color-healthy)' : 'var(--color-critical)' }}>{recoveryEvalResult.policyViolations}</strong></div>
+              <div><span>Hallucinations:</span> <strong style={{ color: 'var(--color-healthy)' }}>{recoveryEvalResult.hallucinations}</strong></div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Visual Diagnostic pipeline */}
       <div className="card" style={{ marginBottom: '24px', padding: '16px' }}>
         <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'bold', letterSpacing: '0.05em', marginBottom: '12px' }}>
@@ -573,6 +824,110 @@ const DeveloperConsole = () => {
               </div>
             </div>
           </div>
+              {/* Incident Scenario Lab Widget */}
+          <div className="card" style={{ border: '1px solid var(--color-info)' }}>
+            <h3 className="panel-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={16} style={{ color: 'var(--color-info)' }} /> Payment Incident Scenario Lab
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+              Execute a controlled simulation of specific payment failure modes to test and evaluate the telemetry detection, state reconstruction, and AI grounding report generation.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>SELECT SCENARIO TEMPLATE</label>
+                <select 
+                  className="select" 
+                  style={{ width: '100%', marginTop: '4px', padding: '6px' }}
+                  value={selectedLabScenario}
+                  onChange={e => setSelectedLabScenario(e.target.value)}
+                  disabled={labLoading}
+                >
+                  {labScenarios.map(sc => (
+                    <option key={sc.scenarioId} value={sc.scenarioId}>
+                      {sc.name} ({sc.severity})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedLabScenario && labScenarios.length > 0 && (
+                <div style={{ fontSize: '0.75rem', background: 'var(--bg-tertiary)', padding: '10px', borderRadius: '4px', borderLeft: '3px solid var(--color-info)' }}>
+                  <strong>Description:</strong> {labScenarios.find(s => s.scenarioId === selectedLabScenario)?.description}
+                  <div style={{ marginTop: '6px' }}>
+                    <strong>Expected Signals:</strong> {labScenarios.find(s => s.scenarioId === selectedLabScenario)?.expectedSignals.join(', ') || 'None'}
+                  </div>
+                </div>
+              )}
+
+              {demoStep > 0 && (
+                <div style={{ background: 'var(--bg-tertiary)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '4px' }}>
+                    <span>Simulation Progress</span>
+                    <span>{demoStep * 10}%</span>
+                  </div>
+                  <div style={{ background: 'black', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ background: 'var(--color-info)', width: `${demoStep * 10}%`, height: '100%', transition: 'width 0.3s ease' }} />
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                    {demoStatusText}
+                  </div>
+                </div>
+              )}
+
+              <button 
+                className="btn btn-success" 
+                onClick={handleRunLabDemo} 
+                disabled={labLoading}
+                style={{ width: '100%', justifyContent: 'center', background: 'var(--color-info)' }}
+              >
+                {labLoading ? 'Executing Scenario Lab...' : 'Run Scenario Lab & Evaluate'}
+              </button>
+            </div>
+          </div>
+
+          {/* Historical Baseline Seeder Panel */}
+          <div className="card">
+            <h3 className="panel-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <RefreshCw size={16} /> Synthetic Historical Data Generator
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+              Establish a robust baseline by generating 15,000 historical transactions spanning the last 7 days.
+            </p>
+            <button 
+              className="btn btn-secondary" 
+              onClick={handleGenerateHistoricalBaseline}
+              disabled={baselineLoading}
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              {baselineLoading ? 'Generating 15,000 payments...' : 'Generate 15k Historical Payments'}
+            </button>
+          </div>
+
+          {/* Data Provenance Panel */}
+          <div className="card">
+            <h3 className="panel-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <HelpCircle size={16} /> Data Provenance Summary
+            </h3>
+            <div style={{ fontSize: '0.75rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '4px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Source Env</span>
+                <strong style={{ color: 'var(--color-warning)' }}>SYNTHETIC SIMULATION</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '4px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Banking Connection</span>
+                <strong>None (Sandbox Mock)</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '4px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Payment Credentials</span>
+                <strong>None (Cleaned/No Secrets)</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Reports Logged</span>
+                <strong>{labReports.length} Evaluation Run(s)</strong>
+              </div>
+            </div>
+          </div>
 
           {/* Aggregator controller */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -595,7 +950,7 @@ const DeveloperConsole = () => {
       <div className="card">
         <div className="flex-between" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px' }}>
           <span style={{ fontWeight: 'bold' }}>Pipeline Console Logs</span>
-          <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '0.75rem' }} onClick={clearLogs}>
+          <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '0.75rem' }} onClick={() => setLogs([])}>
             <Trash2 size={12} /> Clear Logs
           </button>
         </div>
@@ -611,6 +966,66 @@ const DeveloperConsole = () => {
               return <div key={index} style={{ color, marginBottom: '4px' }}>{log}</div>;
             })
           )}
+        </div>
+      </div>
+
+      {/* Evaluation Reports Log Panel */}
+      <div className="card" style={{ marginTop: '24px' }}>
+        <h3 className="panel-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FileText size={16} /> Lab Evaluation Reports History
+        </h3>
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+          Chronological record of completed simulation lab scenarios, including true/false alerts checks, AI grounding scores, and export templates.
+        </p>
+
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-secondary)' }}>
+                <th style={{ padding: '8px' }}>EVAL ID</th>
+                <th style={{ padding: '8px' }}>SCENARIO</th>
+                <th style={{ padding: '8px' }}>RATING SCORE</th>
+                <th style={{ padding: '8px' }}>PRECISION</th>
+                <th style={{ padding: '8px' }}>RECALL</th>
+                <th style={{ padding: '8px' }}>GROUNDING</th>
+                <th style={{ padding: '8px' }}>AI MODE</th>
+                <th style={{ padding: '8px' }}>EXPORTS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {labReports.length === 0 ? (
+                <tr>
+                  <td colSpan="8" style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    No scenario evaluation reports logged. Run a Scenario Lab simulation above to populate.
+                  </td>
+                </tr>
+              ) : (
+                labReports.map((rep, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '8px', fontWeight: 'bold' }}>{rep.evaluationId}</td>
+                    <td style={{ padding: '8px' }}>{rep.name}</td>
+                    <td style={{ padding: '8px' }}>
+                      <span className="badge badge-medium" style={{ background: rep.scorecard.overallScore > 80 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)', color: rep.scorecard.overallScore > 80 ? 'var(--color-healthy)' : 'var(--color-warning)' }}>
+                        {rep.scorecard.overallScore} / 100
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px' }}>{rep.metrics.precision}%</td>
+                    <td style={{ padding: '8px' }}>{rep.metrics.recall}%</td>
+                    <td style={{ padding: '8px' }}>{rep.metrics.evidenceGroundingRate}%</td>
+                    <td style={{ padding: '8px', fontSize: '0.75rem' }}>{rep.aiMode}</td>
+                    <td style={{ padding: '8px' }}>
+                      <a href={`/api/simulator/lab/reports/${rep.evaluationId}/export?format=json`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ padding: '2px 6px', fontSize: '0.7rem', marginRight: '6px' }}>
+                        JSON
+                      </a>
+                      <a href={`/api/simulator/lab/reports/${rep.evaluationId}/export?format=csv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ padding: '2px 6px', fontSize: '0.7rem' }}>
+                        CSV
+                      </a>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

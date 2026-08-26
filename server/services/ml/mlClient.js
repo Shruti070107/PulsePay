@@ -20,14 +20,19 @@ const predictAnomaly = async (paymentId) => {
     return {
       raw_score: data.raw_score,
       normalized_anomaly_score: data.normalized_anomaly_score,
-      is_anomaly: data.is_anomaly
+      is_anomaly: data.is_anomaly,
+      threshold: data.threshold || 0.0,
+      feature_contributions: data.feature_contributions || {},
+      feature_influence_disclaimer: data.feature_influence_disclaimer || "Approximate feature influence via perturbation (not native feature attribution)"
     };
   } catch (error) {
     console.warn(`[ML Client] ML Service is offline or returned an error: ${error.message}. Returning default non-anomaly scores.`);
     return {
       raw_score: 0.0,
       normalized_anomaly_score: 0.0,
-      is_anomaly: false
+      is_anomaly: false,
+      threshold: 0.0,
+      feature_contributions: {}
     };
   }
 };

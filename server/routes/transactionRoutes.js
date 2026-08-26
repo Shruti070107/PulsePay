@@ -211,10 +211,13 @@ router.post('/ingest-event', async (req, res, next) => {
 router.get('/baseline', async (req, res, next) => {
   try {
     const { merchantId } = req.query;
+    const windowHours = parseFloat(req.query.windowHours || 24);
     if (!merchantId) {
-      return res.status(400).json({ success: false, error: 'merchantId parameter is required' });
+      const { calculateGlobalBaseline } = require('../services/analytics/baselineEngine');
+      const result = await calculateGlobalBaseline(windowHours);
+      return res.status(200).json(result);
     }
-    const result = await calculateMerchantBaseline(merchantId);
+    const result = await calculateMerchantBaseline(merchantId, windowHours);
     return res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -245,6 +248,80 @@ router.post('/incidents/:id/feedback', async (req, res, next) => {
     await incident.save();
 
     return res.status(200).json({ success: true, data: incident });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * Returns detailed transaction forensic checks and event timeline
+ */
+router.get('/:paymentId/forensics', async (req, res, next) => {
+  try {
+    const { paymentId } = req.params;
+    const payment = await Payment.findOne({ paymentId });
+    if (!payment) {
+      return res.status(404).json({ success: false, error: 'Payment record not found' });
+    }
+
+    const { reconstructFullState } = require('../services/stateEngine');
+    const { predictAnomaly } = require('../services/ml/mlClient');
+
+    const stateResult = await reconstructFullState(paymentId);
+    const mlResult = await predictAnomaly(paymentId);
+
+    // Forensic status audits
+    const duplicateRisk = stateResult.overallState === 'DUPLICATE_RISK';
+    const outOfOrderRisk = stateResult.outOfOrderDetected;
+    const lateAuthorization = stateResult.lateAuthorizationDetected;
+    const webhookMismatch = stateResult.webhookState === 'FAILED' && stateResult.paymentState === 'CAPTURED';
+    const orderMismatch = stateResult.paymentState === 'CAPTURED' && stateResult.orderState === 'UNPAID';
+    const refundMismatch = stateResult.paymentState === 'CAPTURED' && stateResult.overallState === 'REFUND_ANOMALY';
+
+    const checks = {
+      duplicateRisk,
+      outOfOrderRisk,
+      lateAuthorization,
+      webhookMismatch,
+      orderMismatch,
+      refundMismatch,
+      mlAnomalyScore: mlResult.normalized_anomaly_score,
+      isMLAnomaly: mlResult.is_anomaly
+    };
+
+    // Calculate processing delays (receivedAt - eventTimestamp)
+    const timeline = stateResult.timeline.map(e => {
+      let processingDelayMs = 0;
+      if (e.receivedAt && e.eventTimestamp) {
+        processingDelayMs = Math.abs(new Date(e.receivedAt) - new Date(e.eventTimestamp));
+      }
+      return {
+        eventId: e.eventId,
+        eventType: e.eventType,
+        eventTimestamp: e.eventTimestamp,
+        receivedAt: e.receivedAt,
+        source: e.source,
+        status: e.status,
+        processingDelayMs
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        paymentId: payment.paymentId,
+        customerId: payment.customerId,
+        merchantId: payment.merchantId,
+        orderId: payment.orderId,
+        amount: payment.amount,
+        currency: payment.currency,
+        provider: payment.paymentMethod || 'gateway_mock',
+        status: payment.status,
+        checks,
+        evidence: stateResult.evidence,
+        timeline
+      }
+    });
   } catch (err) {
     next(err);
   }

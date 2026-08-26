@@ -76,6 +76,37 @@ const incidentSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    deterministicEvidence: {
+      type: [String],
+      default: [],
+    },
+    statisticalEvidence: {
+      type: [String],
+      default: [],
+    },
+    aiEvidence: {
+      type: [String],
+      default: [],
+    },
+    primarySignals: {
+      type: [String],
+      default: [],
+    },
+    secondarySignals: {
+      type: [String],
+      default: [],
+    },
+    relatedIncidents: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+    },
+    possibleRootCauses: {
+      type: [String],
+      default: [],
+    },
+    groupingRationale: {
+      type: String,
+    },
     evidenceItems: [
       {
         type: { type: String },

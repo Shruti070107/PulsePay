@@ -21,6 +21,9 @@ class PredictResponse(BaseModel):
     raw_score: float
     normalized_anomaly_score: float
     is_anomaly: bool
+    threshold: float
+    feature_contributions: dict
+    feature_influence_disclaimer: str = "Approximate feature influence via perturbation (not native feature attribution)"
 
 class TrainRequest(BaseModel):
     dataset: List[FeatureVector]

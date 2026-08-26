@@ -58,7 +58,9 @@ class ModelManager:
             return {
                 "raw_score": 0.0,
                 "normalized_anomaly_score": 0.0,
-                "is_anomaly": False
+                "is_anomaly": False,
+                "threshold": 0.0,
+                "feature_contributions": {}
             }
 
         # Convert FeatureVector to DataFrame row
@@ -67,16 +69,32 @@ class ModelManager:
         raw_score = float(self.model.decision_function(df)[0])
         prediction = int(self.model.predict(df)[0])
 
-        # Normalize score: scikit-learn outputs decision_function in [-0.5, 0.5] range
-        # where negative scores denote outliers, positive denote inliers.
-        # We transform this to [0.0, 1.0] where 1.0 represents highly anomalous.
         normalized_score = float(np.clip(0.5 - raw_score, 0.0, 1.0))
         is_anomaly = bool(prediction == -1)
+
+        # Approximate feature contribution via perturbation
+        feature_contributions = {}
+        for col in df.columns:
+            perturbed_df = df.copy()
+            val = perturbed_df[col].iloc[0]
+            step = 1.0 if abs(val) < 1.0 else val * 0.1
+            perturbed_df[col] = val + step
+            
+            p_raw_score = float(self.model.decision_function(perturbed_df)[0])
+            p_norm_score = float(np.clip(0.5 - p_raw_score, 0.0, 1.0))
+            
+            influence = float(abs(p_norm_score - normalized_score))
+            feature_contributions[col] = round(influence, 4)
+
+        threshold = 0.0
 
         return {
             "raw_score": raw_score,
             "normalized_anomaly_score": normalized_score,
-            "is_anomaly": is_anomaly
+            "is_anomaly": is_anomaly,
+            "threshold": threshold,
+            "feature_contributions": feature_contributions,
+            "feature_influence_disclaimer": "Approximate feature influence via perturbation (not native feature attribution)"
         }
         
     def batch_predict(self, dataset):
@@ -84,7 +102,9 @@ class ModelManager:
             return [{
                 "raw_score": 0.0,
                 "normalized_anomaly_score": 0.0,
-                "is_anomaly": False
+                "is_anomaly": False,
+                "threshold": 0.0,
+                "feature_contributions": {}
             } for _ in dataset]
             
         data = [v.model_dump() for v in dataset]
@@ -94,11 +114,29 @@ class ModelManager:
         predictions = self.model.predict(df)
         
         results = []
-        for raw_score, pred in zip(raw_scores, predictions):
+        for i, (raw_score, pred) in enumerate(zip(raw_scores, predictions)):
             normalized_score = float(np.clip(0.5 - raw_score, 0.0, 1.0))
+            
+            # Feature perturbation for this row
+            row_df = df.iloc[[i]]
+            feature_contributions = {}
+            for col in df.columns:
+                perturbed_df = row_df.copy()
+                val = perturbed_df[col].iloc[0]
+                step = 1.0 if abs(val) < 1.0 else val * 0.1
+                perturbed_df[col] = val + step
+                
+                p_raw_score = float(self.model.decision_function(perturbed_df)[0])
+                p_norm_score = float(np.clip(0.5 - p_raw_score, 0.0, 1.0))
+                
+                influence = float(abs(p_norm_score - normalized_score))
+                feature_contributions[col] = round(influence, 4)
+
             results.append({
                 "raw_score": float(raw_score),
                 "normalized_anomaly_score": normalized_score,
-                "is_anomaly": bool(pred == -1)
+                "is_anomaly": bool(pred == -1),
+                "threshold": 0.0,
+                "feature_contributions": feature_contributions
             })
         return results

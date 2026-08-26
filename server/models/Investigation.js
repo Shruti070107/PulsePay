@@ -92,6 +92,26 @@ const investigationSchema = new mongoose.Schema(
       type: [String],
       default: []
     },
+    alternativeHypotheses: {
+      type: [String],
+      default: []
+    },
+    hypotheses: {
+      type: [String],
+      default: []
+    },
+    supportingEvidence: {
+      type: [String],
+      default: []
+    },
+    contradictingEvidence: {
+      type: [String],
+      default: []
+    },
+    nextChecks: {
+      type: [String],
+      default: []
+    },
     rawModelResponse: {
       type: String
     }

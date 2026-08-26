@@ -67,7 +67,51 @@ const groupSignalsIntoIncidents = (signals, threshold = 70) => {
   return groups;
 };
 
+/**
+ * Generates human-readable rationale explaining why signals are grouped into the same incident
+ */
+const generateGroupingRationale = (signals) => {
+  if (signals.length === 0) return 'No anomaly signals correlated.';
+  const leader = signals[0];
+  const type = String(leader.type).replace(/_/g, ' ');
+  
+  const merchants = Array.from(new Set(signals.map(s => s.merchantId)));
+  const providers = Array.from(new Set(signals.map(s => s.provider || 'gateway_mock')));
+  const failureCodes = Array.from(new Set(signals.map(s => s.failureCode).filter(Boolean)));
+  
+  let rationale = `Correlated ${signals.length} transaction anomaly event(s) under type [${type}] due to `;
+  
+  const reasons = [];
+  if (merchants.length === 1) {
+    reasons.push(`matching merchant partition ID [${merchants[0]}]`);
+  } else {
+    reasons.push(`shared profile spread across ${merchants.length} merchants`);
+  }
+  
+  if (providers.length === 1) {
+    reasons.push(`routing signature on provider [${providers[0]}]`);
+  }
+  
+  if (failureCodes.length > 0) {
+    reasons.push(`matching gateway error telemetry status code(s): [${failureCodes.join(', ')}]`);
+  }
+  
+  const timestamps = signals.map(s => new Date(s.timestamp));
+  if (timestamps.length > 1) {
+    const minTime = new Date(Math.min(...timestamps));
+    const maxTime = new Date(Math.max(...timestamps));
+    const windowSec = Math.round((maxTime - minTime) / 1000);
+    reasons.push(`close temporal sequence within a sliding window of ${windowSec} seconds`);
+  } else {
+    reasons.push('narrow occurrence threshold');
+  }
+
+  rationale += reasons.join(', ') + '.';
+  return rationale;
+};
+
 module.exports = {
   calculateSimilarityScore,
-  groupSignalsIntoIncidents
+  groupSignalsIntoIncidents,
+  generateGroupingRationale
 };

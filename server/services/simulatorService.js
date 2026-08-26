@@ -29,6 +29,29 @@ const generateBaseTransaction = () => {
   };
 };
 
+// Helper to create fully populated event objects
+const createEvent = (payment, type, status, source, timestamp, arrivalTime, metadata = {}, extra = {}) => {
+  return {
+    eventId: generateEventId(),
+    paymentId: payment.paymentId,
+    type,
+    eventType: type,
+    source,
+    status,
+    timestamp: timestamp,
+    eventTimestamp: timestamp,
+    receivedAt: arrivalTime || timestamp,
+    merchantId: payment.merchantId,
+    customerId: payment.customerId,
+    orderId: payment.orderId,
+    amount: payment.amount,
+    currency: payment.currency,
+    provider: extra.provider || 'gateway_mock',
+    attempt: extra.attempt || 1,
+    metadata
+  };
+};
+
 /**
  * Scenario 1: Normal Payment Flow
  */
@@ -55,82 +78,26 @@ const generateNormal = (base = generateBaseTransaction(), options = {}) => {
     status: 'paid',
   };
 
-  const events = [];
-  const webhooks = [];
-
-  // T: payment.created
   const t0 = new Date(now.getTime());
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.created',
-    source: 'api',
-    status: 'created',
-    timestamp: t0,
-    eventTimestamp: t0,
-    receivedAt: t0,
-    metadata: { orderId, amount: base.amount },
-  });
-
-  // T + 1s: payment.authorized
   const t1 = new Date(now.getTime() + 1000);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.authorized',
-    source: 'gateway',
-    status: 'authorized',
-    timestamp: t1,
-    eventTimestamp: t1,
-    receivedAt: t1,
-    metadata: { authCode: 'AUTH' + Math.floor(1000 + Math.random() * 9000) },
-  });
-
-  // T + 2s: payment.captured
   const t2 = new Date(now.getTime() + 2000);
-  const captureEventId = generateEventId();
-  events.push({
-    eventId: captureEventId,
-    paymentId,
-    type: 'payment.captured',
-    source: 'gateway',
-    status: 'captured',
-    timestamp: t2,
-    eventTimestamp: t2,
-    receivedAt: t2,
-    metadata: { gatewayTransactionId: 'TXN_' + Math.floor(100000 + Math.random() * 900000) },
-  });
-
-  // T + 2.5s: webhook.sent
   const tSent = new Date(now.getTime() + 2500);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'webhook.sent',
-    source: 'webhook_engine',
-    status: 'sent',
-    timestamp: tSent,
-    eventTimestamp: tSent,
-    receivedAt: tSent,
-    metadata: { webhookId: generateWebhookId() },
-  });
-
-  // T + 3s: webhook.delivered
   const tDelivered = new Date(now.getTime() + 3000);
-  const webhookId = generateWebhookId();
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'webhook.delivered',
-    source: 'webhook_engine',
-    status: 'delivered',
-    timestamp: tDelivered,
-    eventTimestamp: tDelivered,
-    receivedAt: tDelivered,
-    metadata: { webhookId, responseCode: 200 },
-  });
+  const tOrder = new Date(now.getTime() + 3200);
 
-  webhooks.push({
+  const captureEventId = generateEventId();
+  const webhookId = generateWebhookId();
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_OK' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_OK' }),
+    createEvent(payment, 'webhook.sent', 'sent', 'webhook_engine', tSent),
+    createEvent(payment, 'webhook.delivered', 'delivered', 'webhook_engine', tDelivered, tDelivered, { webhookId, responseCode: 200 }),
+    createEvent(payment, 'order.paid', 'paid', 'merchant_system', tOrder)
+  ];
+
+  const webhooks = [{
     webhookId,
     paymentId,
     eventId: captureEventId,
@@ -139,27 +106,13 @@ const generateNormal = (base = generateBaseTransaction(), options = {}) => {
     responseCode: 200,
     attemptNumber: 1,
     timestamp: tDelivered,
-  });
-
-  // T + 3.2s: order.paid
-  const tOrder = new Date(now.getTime() + 3200);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'order.paid',
-    source: 'merchant_system',
-    status: 'paid',
-    timestamp: tOrder,
-    eventTimestamp: tOrder,
-    receivedAt: tOrder,
-    metadata: { orderId },
-  });
+  }];
 
   return { payment, order, events, webhooks };
 };
 
 /**
- * Scenario 2: Webhook Failure
+ * Scenario 2: Webhook Failure (Retries exhaust with error)
  */
 const generateWebhookFailure = (base = generateBaseTransaction(), options = {}) => {
   const paymentId = generatePaymentId();
@@ -184,124 +137,30 @@ const generateWebhookFailure = (base = generateBaseTransaction(), options = {}) 
     status: 'unpaid',
   };
 
-  const events = [];
-  const webhooks = [];
-
-  // T: payment.created
   const t0 = new Date(now.getTime());
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.created',
-    source: 'api',
-    status: 'created',
-    timestamp: t0,
-    eventTimestamp: t0,
-    receivedAt: t0,
-    metadata: { orderId, amount: base.amount },
-  });
-
-  // T + 1s: payment.authorized
   const t1 = new Date(now.getTime() + 1000);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.authorized',
-    source: 'gateway',
-    status: 'authorized',
-    timestamp: t1,
-    eventTimestamp: t1,
-    receivedAt: t1,
-    metadata: { authCode: 'AUTH' + Math.floor(1000 + Math.random() * 9000) },
-  });
-
-  // T + 2s: payment.captured
   const t2 = new Date(now.getTime() + 2000);
-  const captureEventId = generateEventId();
-  events.push({
-    eventId: captureEventId,
-    paymentId,
-    type: 'payment.captured',
-    source: 'gateway',
-    status: 'captured',
-    timestamp: t2,
-    eventTimestamp: t2,
-    receivedAt: t2,
-    metadata: { gatewayTransactionId: 'TXN_' + Math.floor(100000 + Math.random() * 900000) },
-  });
-
-  // Webhook Attempt 1 (T + 3s, fails 500)
-  const webhookId = generateWebhookId();
   const tWh1 = new Date(now.getTime() + 3000);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'webhook.failed',
-    source: 'webhook_engine',
-    status: 'failed',
-    timestamp: tWh1,
-    eventTimestamp: tWh1,
-    receivedAt: tWh1,
-    metadata: { webhookId, attemptNumber: 1, responseCode: 500 },
-  });
-  webhooks.push({
-    webhookId,
-    paymentId,
-    eventId: captureEventId,
-    eventType: 'payment.captured',
-    deliveryStatus: 'failed',
-    responseCode: 500,
-    attemptNumber: 1,
-    timestamp: tWh1,
-  });
-
-  // Webhook Attempt 2 (T + 15s, fails 502)
   const tWh2 = new Date(now.getTime() + 15000);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'webhook.failed',
-    source: 'webhook_engine',
-    status: 'failed',
-    timestamp: tWh2,
-    eventTimestamp: tWh2,
-    receivedAt: tWh2,
-    metadata: { webhookId, attemptNumber: 2, responseCode: 502 },
-  });
-  webhooks.push({
-    webhookId,
-    paymentId,
-    eventId: captureEventId,
-    eventType: 'payment.captured',
-    deliveryStatus: 'failed',
-    responseCode: 502,
-    attemptNumber: 2,
-    timestamp: tWh2,
-  });
-
-  // Webhook Attempt 3 (T + 60s, fails 503)
   const tWh3 = new Date(now.getTime() + 60000);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'webhook.failed',
-    source: 'webhook_engine',
-    status: 'failed',
-    timestamp: tWh3,
-    eventTimestamp: tWh3,
-    receivedAt: tWh3,
-    metadata: { webhookId, attemptNumber: 3, responseCode: 503 },
-  });
-  webhooks.push({
-    webhookId,
-    paymentId,
-    eventId: captureEventId,
-    eventType: 'payment.captured',
-    deliveryStatus: 'failed',
-    responseCode: 503,
-    attemptNumber: 3,
-    timestamp: tWh3,
-  });
+
+  const captureEventId = generateEventId();
+  const webhookId = generateWebhookId();
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_OK' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_OK' }),
+    createEvent(payment, 'webhook.failed', 'failed', 'webhook_engine', tWh1, tWh1, { webhookId, responseCode: 500, attemptNumber: 1 }),
+    createEvent(payment, 'webhook.failed', 'failed', 'webhook_engine', tWh2, tWh2, { webhookId, responseCode: 502, attemptNumber: 2 }),
+    createEvent(payment, 'webhook.failed', 'failed', 'webhook_engine', tWh3, tWh3, { webhookId, responseCode: 503, attemptNumber: 3 })
+  ];
+
+  const webhooks = [
+    { webhookId, paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 500, attemptNumber: 1, timestamp: tWh1 },
+    { webhookId, paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 502, attemptNumber: 2, timestamp: tWh2 },
+    { webhookId, paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 503, attemptNumber: 3, timestamp: tWh3 }
+  ];
 
   return { payment, order, events, webhooks };
 };
@@ -315,10 +174,9 @@ const generateDuplicate = (base = generateBaseTransaction(), options = {}) => {
   const amount = base.amount;
   const now = options.now || new Date();
 
-  // First payment (Stuck in processing)
+  // First payment
   const paymentId1 = generatePaymentId();
   const orderId1 = generateOrderId();
-  
   const payment1 = {
     paymentId: paymentId1,
     orderId: orderId1,
@@ -337,37 +195,17 @@ const generateDuplicate = (base = generateBaseTransaction(), options = {}) => {
     status: 'unpaid',
   };
 
-  const events1 = [];
   const t0_1 = new Date(now.getTime());
-  events1.push({
-    eventId: generateEventId(),
-    paymentId: paymentId1,
-    type: 'payment.created',
-    source: 'api',
-    status: 'created',
-    timestamp: t0_1,
-    eventTimestamp: t0_1,
-    receivedAt: t0_1,
-    metadata: { orderId: orderId1, amount },
-  });
-
   const t1_1 = new Date(now.getTime() + 1000);
-  events1.push({
-    eventId: generateEventId(),
-    paymentId: paymentId1,
-    type: 'payment.processing',
-    source: 'gateway',
-    status: 'processing',
-    timestamp: t1_1,
-    eventTimestamp: t1_1,
-    receivedAt: t1_1,
-    metadata: { gatewayMessage: 'Processing at network' },
-  });
 
-  // Second payment (Duplicate attempt 10s later)
+  const events1 = [
+    createEvent(payment1, 'payment.created', 'created', 'api', t0_1),
+    createEvent(payment1, 'payment.processing', 'processing', 'gateway', t1_1, t1_1, { gatewayMessage: 'Processing at network' })
+  ];
+
+  // Second payment (Duplicate 10s later)
   const paymentId2 = generatePaymentId();
   const orderId2 = generateOrderId();
-  
   const payment2 = {
     paymentId: paymentId2,
     orderId: orderId2,
@@ -386,19 +224,10 @@ const generateDuplicate = (base = generateBaseTransaction(), options = {}) => {
     status: 'created',
   };
 
-  const events2 = [];
   const t0_2 = new Date(now.getTime() + 10000);
-  events2.push({
-    eventId: generateEventId(),
-    paymentId: paymentId2,
-    type: 'payment.created',
-    source: 'api',
-    status: 'created',
-    timestamp: t0_2,
-    eventTimestamp: t0_2,
-    receivedAt: t0_2,
-    metadata: { orderId: orderId2, amount },
-  });
+  const events2 = [
+    createEvent(payment2, 'payment.created', 'created', 'api', t0_2)
+  ];
 
   return {
     payments: [payment1, payment2],
@@ -434,74 +263,29 @@ const generateOutOfOrder = (base = generateBaseTransaction(), options = {}) => {
     status: 'paid',
   };
 
-  const events = [];
-  const webhooks = [];
-
-  // Actual timestamps (logical order)
   const tCreated = new Date(now.getTime());
   const tAuthorized = new Date(now.getTime() + 1000);
   const tCaptured = new Date(now.getTime() + 2000);
 
-  // Ingestion timestamps (out of order arrival sequence)
-  const arrival1 = new Date(now.getTime() + 10000); // created arrives T + 10s
-  const arrival2 = new Date(now.getTime() + 12000); // captured arrives T + 12s
-  const arrival3 = new Date(now.getTime() + 14000); // authorized arrives T + 14s
+  // Ingestion occurs out-of-order
+  const arrival1 = new Date(now.getTime() + 10000);
+  const arrival2 = new Date(now.getTime() + 12000);
+  const arrival3 = new Date(now.getTime() + 14000);
 
-  // 1. payment.created (Logical T_created, Ingested arrival1)
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.created',
-    source: 'api',
-    status: 'created',
-    timestamp: tCreated,
-    eventTimestamp: tCreated,
-    receivedAt: arrival1,
-    metadata: { orderId, amount: base.amount },
-  });
-
-  // 2. payment.captured (Logical T_captured, Ingested arrival2)
   const captureEventId = generateEventId();
-  events.push({
-    eventId: captureEventId,
-    paymentId,
-    type: 'payment.captured',
-    source: 'gateway',
-    status: 'captured',
-    timestamp: tCaptured,
-    eventTimestamp: tCaptured,
-    receivedAt: arrival2,
-    metadata: { gatewayTransactionId: 'TXN_' + Math.floor(100000 + Math.random() * 900000) },
-  });
-
-  // 3. payment.authorized (Logical T_authorized, Ingested arrival3)
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.authorized',
-    source: 'gateway',
-    status: 'authorized',
-    timestamp: tAuthorized,
-    eventTimestamp: tAuthorized,
-    receivedAt: arrival3,
-    metadata: { authCode: 'AUTH' + Math.floor(1000 + Math.random() * 9000) },
-  });
-
-  // Regular successful webhook for the capture
-  const tWh = new Date(now.getTime() + 15000);
   const webhookId = generateWebhookId();
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'webhook.delivered',
-    source: 'webhook_engine',
-    status: 'delivered',
-    timestamp: tWh,
-    eventTimestamp: tWh,
-    receivedAt: tWh,
-    metadata: { webhookId },
-  });
-  webhooks.push({
+  const tWh = new Date(now.getTime() + 15000);
+  const tOrder = new Date(now.getTime() + 15500);
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', tCreated, arrival1),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', tCaptured, arrival2, { gatewayTransactionId: 'TXN_OK', eventId: captureEventId }),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', tAuthorized, arrival3, { authCode: 'AUTH_OK' }),
+    createEvent(payment, 'webhook.delivered', 'delivered', 'webhook_engine', tWh, tWh, { webhookId }),
+    createEvent(payment, 'order.paid', 'paid', 'merchant_system', tOrder)
+  ];
+
+  const webhooks = [{
     webhookId,
     paymentId,
     eventId: captureEventId,
@@ -510,21 +294,7 @@ const generateOutOfOrder = (base = generateBaseTransaction(), options = {}) => {
     responseCode: 200,
     attemptNumber: 1,
     timestamp: tWh,
-  });
-
-  // Order Paid event
-  const tOrder = new Date(now.getTime() + 15500);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'order.paid',
-    source: 'merchant_system',
-    status: 'paid',
-    timestamp: tOrder,
-    eventTimestamp: tOrder,
-    receivedAt: tOrder,
-    metadata: { orderId },
-  });
+  }];
 
   return { payment, order, events, webhooks };
 };
@@ -555,56 +325,28 @@ const generateRefundFailure = (base = generateBaseTransaction(), options = {}) =
     status: 'paid',
   };
 
-  const events = [];
-  const webhooks = [];
-
-  // T: payment.created
   const t0 = new Date(now.getTime());
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.created',
-    source: 'api',
-    status: 'created',
-    timestamp: t0,
-    eventTimestamp: t0,
-    receivedAt: t0,
-    metadata: { orderId, amount: base.amount },
-  });
-
-  // T + 1s: payment.authorized
   const t1 = new Date(now.getTime() + 1000);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.authorized',
-    source: 'gateway',
-    status: 'authorized',
-    timestamp: t1,
-    eventTimestamp: t1,
-    receivedAt: t1,
-    metadata: { authCode: 'AUTH_REF' },
-  });
-
-  // T + 2s: payment.captured
   const t2 = new Date(now.getTime() + 2000);
-  const captureEventId = generateEventId();
-  events.push({
-    eventId: captureEventId,
-    paymentId,
-    type: 'payment.captured',
-    source: 'gateway',
-    status: 'captured',
-    timestamp: t2,
-    eventTimestamp: t2,
-    receivedAt: t2,
-    metadata: { gatewayTransactionId: 'TXN_REF' },
-  });
-
-  // Webhook
   const tWh = new Date(now.getTime() + 3000);
+  const tOrder = new Date(now.getTime() + 3200);
+  const tRefund1 = new Date(now.getTime() + 10000);
+  const tRefund2 = new Date(now.getTime() + 12000);
+
+  const captureEventId = generateEventId();
   const webhookId = generateWebhookId();
-  webhooks.push({
+  const refundId = generateRefundId();
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_OK' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_OK', eventId: captureEventId }),
+    createEvent(payment, 'order.paid', 'paid', 'merchant_system', tOrder),
+    createEvent(payment, 'refund.created', 'created', 'api', tRefund1, tRefund1, { refundId, amount: base.amount }),
+    createEvent(payment, 'refund.failed', 'failed', 'gateway', tRefund2, tRefund2, { refundId, errorCode: 'INSUFFICIENT_MERCHANT_BALANCE', message: 'Refund declined by bank' })
+  ];
+
+  const webhooks = [{
     webhookId,
     paymentId,
     eventId: captureEventId,
@@ -613,49 +355,7 @@ const generateRefundFailure = (base = generateBaseTransaction(), options = {}) =
     responseCode: 200,
     attemptNumber: 1,
     timestamp: tWh,
-  });
-
-  // Order paid
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'order.paid',
-    source: 'merchant_system',
-    status: 'paid',
-    timestamp: new Date(now.getTime() + 3200),
-    eventTimestamp: new Date(now.getTime() + 3200),
-    receivedAt: new Date(now.getTime() + 3200),
-    metadata: { orderId },
-  });
-
-  // T + 10s: refund.created
-  const tRefund1 = new Date(now.getTime() + 10000);
-  const refundId = generateRefundId();
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'refund.created',
-    source: 'api',
-    status: 'created',
-    timestamp: tRefund1,
-    eventTimestamp: tRefund1,
-    receivedAt: tRefund1,
-    metadata: { refundId, amount: base.amount, reason: 'Customer Request' },
-  });
-
-  // T + 12s: refund.failed
-  const tRefund2 = new Date(now.getTime() + 12000);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'refund.failed',
-    source: 'gateway',
-    status: 'failed',
-    timestamp: tRefund2,
-    eventTimestamp: tRefund2,
-    receivedAt: tRefund2,
-    metadata: { refundId, errorCode: 'INSUFFICIENT_MERCHANT_BALANCE', message: 'Refund declined by bank' },
-  });
+  }];
 
   return { payment, order, events, webhooks };
 };
@@ -668,7 +368,6 @@ const generateLateAuth = (base = generateBaseTransaction(), options = {}) => {
   const orderId = generateOrderId();
   const now = options.now || new Date();
 
-  // Payment starts as failed, but authorized later
   const payment = {
     paymentId,
     orderId,
@@ -677,80 +376,35 @@ const generateLateAuth = (base = generateBaseTransaction(), options = {}) => {
     customerId: base.customerId,
     merchantId: base.merchantId,
     paymentMethod: base.paymentMethod,
-    status: 'captured', // Final status is captured
+    status: 'captured',
   };
 
   const order = {
     orderId,
     paymentId,
     amount: base.amount,
-    status: 'paid', // Final status is paid
+    status: 'paid',
   };
 
-  const events = [];
-  const webhooks = [];
-
-  // T: payment.created
   const t0 = new Date(now.getTime());
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.created',
-    source: 'api',
-    status: 'created',
-    timestamp: t0,
-    eventTimestamp: t0,
-    receivedAt: t0,
-    metadata: { orderId, amount: base.amount },
-  });
-
-  // T + 5s: payment.failed (Gateway initially failed due to drop/timeout)
   const tFail = new Date(now.getTime() + 5000);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.failed',
-    source: 'gateway',
-    status: 'failed',
-    timestamp: tFail,
-    eventTimestamp: tFail,
-    receivedAt: tFail,
-    metadata: { errorCode: 'NETWORK_TIMEOUT', message: 'Gateway response timed out' },
-  });
-
-  // T + 30s: payment.authorized (Late authorization arrives from processor)
   const tAuth = new Date(now.getTime() + 30000);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'payment.authorized',
-    source: 'gateway',
-    status: 'authorized',
-    timestamp: tAuth,
-    eventTimestamp: tAuth,
-    receivedAt: tAuth,
-    metadata: { authCode: 'LATE_AUTH_123', originalAttemptStatus: 'failed' },
-  });
-
-  // T + 32s: payment.captured
   const tCap = new Date(now.getTime() + 32000);
-  const captureEventId = generateEventId();
-  events.push({
-    eventId: captureEventId,
-    paymentId,
-    type: 'payment.captured',
-    source: 'gateway',
-    status: 'captured',
-    timestamp: tCap,
-    eventTimestamp: tCap,
-    receivedAt: tCap,
-    metadata: { gatewayTransactionId: 'TXN_LATE_123' },
-  });
-
-  // Webhook
   const tWh = new Date(now.getTime() + 33000);
+  const tOrder = new Date(now.getTime() + 34000);
+
+  const captureEventId = generateEventId();
   const webhookId = generateWebhookId();
-  webhooks.push({
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.failed', 'failed', 'gateway', tFail, tFail, { errorCode: 'NETWORK_TIMEOUT' }),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', tAuth, tAuth, { authCode: 'LATE_AUTH_123' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', tCap, tCap, { gatewayTransactionId: 'TXN_LATE_123', eventId: captureEventId }),
+    createEvent(payment, 'order.paid', 'paid', 'merchant_system', tOrder)
+  ];
+
+  const webhooks = [{
     webhookId,
     paymentId,
     eventId: captureEventId,
@@ -759,23 +413,695 @@ const generateLateAuth = (base = generateBaseTransaction(), options = {}) => {
     responseCode: 200,
     attemptNumber: 1,
     timestamp: tWh,
-  });
-
-  // Order paid
-  const tOrder = new Date(now.getTime() + 34000);
-  events.push({
-    eventId: generateEventId(),
-    paymentId,
-    type: 'order.paid',
-    source: 'merchant_system',
-    status: 'paid',
-    timestamp: tOrder,
-    eventTimestamp: tOrder,
-    receivedAt: tOrder,
-    metadata: { orderId },
-  });
+  }];
 
   return { payment, order, events, webhooks };
+};
+
+/**
+ * Scenario 7: Webhook Outage (Complete network blockage)
+ */
+const generateWebhookOutage = (base = generateBaseTransaction(), options = {}) => {
+  const data = generateWebhookFailure(base, options);
+  // Enhance webhook failure to show continuous retry exhaustion
+  const webhookId = data.webhooks[0]?.webhookId || generateWebhookId();
+  const captureEventId = generateEventId();
+  const now = options.now || new Date();
+  
+  const tWh4 = new Date(now.getTime() + 300000); // 5 min retry
+  const tWh5 = new Date(now.getTime() + 600000); // 10 min retry
+
+  data.events.push(
+    createEvent(data.payment, 'webhook.failed', 'failed', 'webhook_engine', tWh4, tWh4, { webhookId, responseCode: 504, attemptNumber: 4 }),
+    createEvent(data.payment, 'webhook.failed', 'failed', 'webhook_engine', tWh5, tWh5, { webhookId, responseCode: 504, attemptNumber: 5 })
+  );
+
+  data.webhooks.push(
+    { webhookId, paymentId: data.payment.paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 504, attemptNumber: 4, timestamp: tWh4 },
+    { webhookId, paymentId: data.payment.paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 504, attemptNumber: 5, timestamp: tWh5 }
+  );
+
+  return data;
+};
+
+/**
+ * Scenario 8: Payment Gateway Timeout
+ */
+const generateGatewayTimeout = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount,
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'processing', // Stays stuck in processing
+  };
+
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount,
+    status: 'unpaid',
+  };
+
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 1500);
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.processing', 'processing', 'gateway', t1, t1, { gatewayMessage: 'Gateway connection timeout. No status resolution.' })
+  ];
+
+  return { payment, order, events, webhooks: [] };
+};
+
+/**
+ * Scenario 9: Authorization Latency Spike
+ */
+const generateAuthLatencySpike = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount,
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'captured',
+  };
+
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount,
+    status: 'paid',
+  };
+
+  const t0 = new Date(now.getTime());
+  // Huge gap between create and authorize
+  const t1 = new Date(now.getTime() + 45000); // 45 seconds delay!
+  const t2 = new Date(now.getTime() + 46000);
+  const tSent = new Date(now.getTime() + 46500);
+  const tDelivered = new Date(now.getTime() + 47000);
+  const tOrder = new Date(now.getTime() + 47200);
+
+  const captureEventId = generateEventId();
+  const webhookId = generateWebhookId();
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_SLOW' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_SLOW' }),
+    createEvent(payment, 'webhook.sent', 'sent', 'webhook_engine', tSent),
+    createEvent(payment, 'webhook.delivered', 'delivered', 'webhook_engine', tDelivered, tDelivered, { webhookId, responseCode: 200 }),
+    createEvent(payment, 'order.paid', 'paid', 'merchant_system', tOrder)
+  ];
+
+  const webhooks = [{
+    webhookId,
+    paymentId,
+    eventId: captureEventId,
+    eventType: 'payment.captured',
+    deliveryStatus: 'delivered',
+    responseCode: 200,
+    attemptNumber: 1,
+    timestamp: tDelivered,
+  }];
+
+  return { payment, order, events, webhooks };
+};
+
+/**
+ * Scenario 10: Duplicate Webhook (Multiple delivered events)
+ */
+const generateDuplicateWebhook = (base = generateBaseTransaction(), options = {}) => {
+  const data = generateNormal(base, options);
+  const now = options.now || new Date();
+  
+  // Send duplicate webhook event 10s later
+  const tDupDelivered = new Date(now.getTime() + 13000);
+  const webhookIdDup = generateWebhookId();
+  const captureEventId = data.events.find(e => e.type === 'payment.captured')?.eventId || generateEventId();
+
+  data.events.push(
+    createEvent(data.payment, 'webhook.delivered', 'delivered', 'webhook_engine', tDupDelivered, tDupDelivered, { webhookId: webhookIdDup, responseCode: 200, isDuplicate: true })
+  );
+
+  data.webhooks.push({
+    webhookId: webhookIdDup,
+    paymentId: data.payment.paymentId,
+    eventId: captureEventId,
+    eventType: 'payment.captured',
+    deliveryStatus: 'delivered',
+    responseCode: 200,
+    attemptNumber: 2,
+    timestamp: tDupDelivered,
+  });
+
+  return data;
+};
+
+/**
+ * Scenario 11: Merchant Endpoint 5xx Spike
+ */
+const generateMerchant5xxSpike = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount,
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'captured',
+  };
+
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount,
+    status: 'unpaid',
+  };
+
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 1000);
+  const t2 = new Date(now.getTime() + 2000);
+  const tWh1 = new Date(now.getTime() + 3000);
+  const tWh2 = new Date(now.getTime() + 8000);
+
+  const captureEventId = generateEventId();
+  const webhookId = generateWebhookId();
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_OK' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_OK' }),
+    createEvent(payment, 'webhook.failed', 'failed', 'webhook_engine', tWh1, tWh1, { webhookId, responseCode: 500, attemptNumber: 1 }),
+    createEvent(payment, 'webhook.failed', 'failed', 'webhook_engine', tWh2, tWh2, { webhookId, responseCode: 500, attemptNumber: 2 })
+  ];
+
+  const webhooks = [
+    { webhookId, paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 500, attemptNumber: 1, timestamp: tWh1 },
+    { webhookId, paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 500, attemptNumber: 2, timestamp: tWh2 }
+  ];
+
+  return { payment, order, events, webhooks };
+};
+
+/**
+ * Scenario 12: Merchant Endpoint Timeout (HTTP 504)
+ */
+const generateMerchantTimeout = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount,
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'captured',
+  };
+
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount,
+    status: 'unpaid',
+  };
+
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 1000);
+  const t2 = new Date(now.getTime() + 2000);
+  const tWh = new Date(now.getTime() + 15000); // Fails after long connection timeout
+
+  const captureEventId = generateEventId();
+  const webhookId = generateWebhookId();
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_OK' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_OK' }),
+    createEvent(payment, 'webhook.failed', 'failed', 'webhook_engine', tWh, tWh, { webhookId, responseCode: 504, attemptNumber: 1 })
+  ];
+
+  const webhooks = [
+    { webhookId, paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 504, attemptNumber: 1, timestamp: tWh }
+  ];
+
+  return { payment, order, events, webhooks };
+};
+
+/**
+ * Scenario 13: Provider Degradation (Stripe decline burst & slowness)
+ */
+const generateProviderDegradation = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount,
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'failed',
+  };
+
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount,
+    status: 'unpaid',
+  };
+
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 14000); // 14s slowness!
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.failed', 'failed', 'gateway', t1, t1, { errorCode: 'PROVIDER_TIMEOUT', details: 'Stripe degradation slow responses' }, { provider: 'stripe' })
+  ];
+
+  return { payment, order, events, webhooks: [] };
+};
+
+/**
+ * Scenario 14: High Decline-Rate Burst
+ */
+const generateHighDeclineRate = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount,
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'failed',
+  };
+
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount,
+    status: 'unpaid',
+  };
+
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 800);
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.failed', 'failed', 'gateway', t1, t1, { errorCode: 'CARD_DECLINED', message: 'Insufficient funds on customer account' })
+  ];
+
+  return { payment, order, events, webhooks: [] };
+};
+
+/**
+ * Scenario 15: Partial Capture Anomaly
+ */
+const generatePartialCapture = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount,
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'partially_refunded',
+  };
+
+  // Order is for full amount, but payment captured less
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount,
+    status: 'unpaid',
+  };
+
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 1000);
+  const t2 = new Date(now.getTime() + 2000);
+  const tWh = new Date(now.getTime() + 3000);
+
+  const captureEventId = generateEventId();
+  const webhookId = generateWebhookId();
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_OK' }),
+    // Capture amount is less than auth amount
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_OK', capturedAmount: base.amount - 100 })
+  ];
+
+  const webhooks = [{
+    webhookId,
+    paymentId,
+    eventId: captureEventId,
+    eventType: 'payment.captured',
+    deliveryStatus: 'delivered',
+    responseCode: 200,
+    attemptNumber: 1,
+    timestamp: tWh,
+  }];
+
+  return { payment, order, events, webhooks };
+};
+
+/**
+ * Scenario 16: Amount Mismatch (Captured ₹1000, Order ₹900)
+ */
+const generateAmountMismatch = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount, // e.g. 1000
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'captured',
+  };
+
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount - 100, // mismatch
+    status: 'paid',
+  };
+
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 1000);
+  const t2 = new Date(now.getTime() + 2000);
+  const tWh = new Date(now.getTime() + 3000);
+
+  const captureEventId = generateEventId();
+  const webhookId = generateWebhookId();
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_OK' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_OK' })
+  ];
+
+  const webhooks = [{
+    webhookId,
+    paymentId,
+    eventId: captureEventId,
+    eventType: 'payment.captured',
+    deliveryStatus: 'delivered',
+    responseCode: 200,
+    attemptNumber: 1,
+    timestamp: tWh,
+  }];
+
+  return { payment, order, events, webhooks };
+};
+
+/**
+ * Scenario 17: Order/Payment State Mismatch
+ */
+const generateOrderStateMismatch = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount,
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'captured',
+  };
+
+  // Payment is captured, but order remains unpaid
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount,
+    status: 'unpaid',
+  };
+
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 1000);
+  const t2 = new Date(now.getTime() + 2000);
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_OK' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_OK' })
+  ];
+
+  return { payment, order, events, webhooks: [] };
+};
+
+/**
+ * Scenario 18: Retry Storm (Rapid firing of retries)
+ */
+const generateRetryStorm = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount,
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'captured',
+  };
+
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount,
+    status: 'unpaid',
+  };
+
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 1000);
+  const t2 = new Date(now.getTime() + 2000);
+
+  // Retries fired rapidly (1s intervals instead of standard backoff)
+  const tWh1 = new Date(now.getTime() + 2100);
+  const tWh2 = new Date(now.getTime() + 3100);
+  const tWh3 = new Date(now.getTime() + 4100);
+  const tWh4 = new Date(now.getTime() + 5100);
+
+  const captureEventId = generateEventId();
+  const webhookId = generateWebhookId();
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_OK' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_OK' }),
+    createEvent(payment, 'webhook.failed', 'failed', 'webhook_engine', tWh1, tWh1, { webhookId, responseCode: 503, attemptNumber: 1 }),
+    createEvent(payment, 'webhook.failed', 'failed', 'webhook_engine', tWh2, tWh2, { webhookId, responseCode: 503, attemptNumber: 2 }),
+    createEvent(payment, 'webhook.failed', 'failed', 'webhook_engine', tWh3, tWh3, { webhookId, responseCode: 503, attemptNumber: 3 }),
+    createEvent(payment, 'webhook.failed', 'failed', 'webhook_engine', tWh4, tWh4, { webhookId, responseCode: 503, attemptNumber: 4 })
+  ];
+
+  const webhooks = [
+    { webhookId, paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 503, attemptNumber: 1, timestamp: tWh1 },
+    { webhookId, paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 503, attemptNumber: 2, timestamp: tWh2 },
+    { webhookId, paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 503, attemptNumber: 3, timestamp: tWh3 },
+    { webhookId, paymentId, eventId: captureEventId, eventType: 'payment.captured', deliveryStatus: 'failed', responseCode: 503, attemptNumber: 4, timestamp: tWh4 }
+  ];
+
+  return { payment, order, events, webhooks };
+};
+
+/**
+ * Scenario 19: Sudden Merchant Traffic Spike
+ */
+const generateMerchantTrafficSpike = (base = generateBaseTransaction(), options = {}) => {
+  const data = generateNormal(base, options);
+  // Add a marker in metadata indicating burst context
+  data.events.forEach(e => {
+    e.metadata = { ...e.metadata, trafficContext: 'BURST_TRAFFIC_SPIKE' };
+  });
+  return data;
+};
+
+/**
+ * Scenario 20: Currency Anomaly (Payment in USD instead of standard INR)
+ */
+const generateCurrencyAnomaly = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  // Currency set to USD, amount is small value (e.g. 10 USD)
+  const payment = {
+    paymentId,
+    orderId,
+    amount: 10,
+    currency: 'USD',
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: base.paymentMethod,
+    status: 'captured',
+  };
+
+  const order = {
+    orderId,
+    paymentId,
+    amount: 10,
+    status: 'paid',
+  };
+
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 1000);
+  const t2 = new Date(now.getTime() + 2000);
+  const tWh = new Date(now.getTime() + 3000);
+
+  const captureEventId = generateEventId();
+  const webhookId = generateWebhookId();
+
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', t1, t1, { authCode: 'AUTH_OK' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', t2, t2, { gatewayTransactionId: 'TXN_OK' })
+  ];
+
+  const webhooks = [{
+    webhookId,
+    paymentId,
+    eventId: captureEventId,
+    eventType: 'payment.captured',
+    deliveryStatus: 'delivered',
+    responseCode: 200,
+    attemptNumber: 1,
+    timestamp: tWh,
+  }];
+
+  return { payment, order, events, webhooks };
+};
+
+/**
+ * Scenario 21: Repeated Customer Payment Attempt (UPI failures -> success)
+ */
+const generateRepeatedCustomerAttempts = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+
+  const payment = {
+    paymentId,
+    orderId,
+    amount: base.amount,
+    currency: base.currency,
+    customerId: base.customerId,
+    merchantId: base.merchantId,
+    paymentMethod: 'upi',
+    status: 'captured',
+  };
+
+  const order = {
+    orderId,
+    paymentId,
+    amount: base.amount,
+    status: 'paid',
+  };
+
+  const events = [];
+  const captureEventId = generateEventId();
+  const webhookId = generateWebhookId();
+
+  // 3 sequential payment failures on the same customer card/UPI
+  for (let i = 0; i < 3; i++) {
+    const tFail = new Date(now.getTime() + i * 5000);
+    events.push(
+      createEvent(payment, 'payment.created', 'created', 'api', tFail),
+      createEvent(payment, 'payment.failed', 'failed', 'gateway', new Date(tFail.getTime() + 1000), new Date(tFail.getTime() + 1000), { errorCode: 'USER_ABORTED', message: 'UPI transaction aborted by user' })
+    );
+  }
+
+  // 4th attempt succeeds
+  const tSuccess = new Date(now.getTime() + 20000);
+  const tAuth = new Date(now.getTime() + 21000);
+  const tCap = new Date(now.getTime() + 22000);
+  const tWh = new Date(now.getTime() + 23000);
+  const tOrder = new Date(now.getTime() + 23200);
+
+  events.push(
+    createEvent(payment, 'payment.created', 'created', 'api', tSuccess),
+    createEvent(payment, 'payment.authorized', 'authorized', 'gateway', tAuth, tAuth, { authCode: 'AUTH_UPI_OK' }),
+    createEvent(payment, 'payment.captured', 'captured', 'gateway', tCap, tCap, { gatewayTransactionId: 'TXN_UPI_OK', eventId: captureEventId }),
+    createEvent(payment, 'order.paid', 'paid', 'merchant_system', tOrder)
+  );
+
+  const webhooks = [{
+    webhookId,
+    paymentId,
+    eventId: captureEventId,
+    eventType: 'payment.captured',
+    deliveryStatus: 'delivered',
+    responseCode: 200,
+    attemptNumber: 1,
+    timestamp: tWh,
+  }];
+
+  return { payment, order, events, webhooks };
+};
+
+/**
+ * Scenario 22: Multi-Signal Compound Incident (Spike + timeout + duplicate)
+ */
+const generateMultiSignalCompound = (base = generateBaseTransaction(), options = {}) => {
+  // Generates duplicate risk and a merchant timeout together
+  const now = options.now || new Date();
+  const dupData = generateDuplicate(base, options);
+  const timeoutData = generateMerchantTimeout(base, { now: new Date(now.getTime() + 20000) });
+
+  return {
+    payments: [...dupData.payments, timeoutData.payment],
+    orders: [...dupData.orders, timeoutData.order],
+    events: [...dupData.events, ...timeoutData.events],
+    webhooks: [...dupData.webhooks, ...timeoutData.webhooks]
+  };
 };
 
 /**
@@ -959,6 +1285,22 @@ module.exports = {
   generateOutOfOrder,
   generateRefundFailure,
   generateLateAuth,
+  generateWebhookOutage,
+  generateGatewayTimeout,
+  generateAuthLatencySpike,
+  generateDuplicateWebhook,
+  generateMerchant5xxSpike,
+  generateMerchantTimeout,
+  generateProviderDegradation,
+  generateHighDeclineRate,
+  generatePartialCapture,
+  generateAmountMismatch,
+  generateOrderStateMismatch,
+  generateRetryStorm,
+  generateMerchantTrafficSpike,
+  generateCurrencyAnomaly,
+  generateRepeatedCustomerAttempts,
+  generateMultiSignalCompound,
   saveScenarioData,
   generateBatch,
 };

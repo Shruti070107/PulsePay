@@ -1,124 +1,163 @@
-# PulsePay — Evidence-Driven AI Payment Incident Intelligence Platform
+# PulsePay — AI Revenue Recovery & Payment Intelligence Agent
 
-PulsePay is an AI-assisted payment incident intelligence system designed for merchant and payment operations. It reconstructs ambiguous transaction states from raw event timelines, compiles structured evidence facts, correlates related anomalies, scores confidence breakdowns, and provides operator recovery checklists with visual root cause causal graphs.
+PulsePay is an **Evidence-Driven AI Revenue Recovery & Payment Intelligence Platform** designed for payment operations, merchant engineering, and SRE teams.
 
-## Core Problem
-In digital commerce, processing flows are distributed across gateways, webhook systems, and order databases. When these systems disagree (e.g. gateway captures funds but the webhook drops, leaving the merchant order status marked as "unpaid"), human operators must manually reconcile logs, which is slow and costly.
-
-## Solution
-PulsePay acts as an intelligence layer above transaction streams. It:
-1. **Reconstructs Transaction States**: Chronologically processes events to resolve out-of-order, duplicate, and late syncs.
-2. **Builds Structured Evidence Checklist**: Collects transaction parameters, HTTP errors, retry counts, latency checks, and ML outlier scores.
-3. **Correlates Anomalies**: Clusters related anomalies using a Leader-Follower model to reduce alert fatigue.
-4. **Calculates Blast Radius**: Computes total amounts at risk, failure rates, duration logs, and customer counts.
-5. **Provides Causal Root Cause Graphs**: Generates step-by-step visual chain transitions.
-6. **AI Diagnostics Reasoning**: Leverages Gemini (with safe mock fallbacks) to output summaries, factual tables, recommendations, and information gaps.
-7. **Operator action center**: Persists status changes (TODO, IN PROGRESS, etc.) for operational checks.
+PulsePay identifies **revenue at risk**, determines what portion is **realistically recoverable**, explains **why the revenue was lost**, recommends the **safest recovery strategy**, simulates the **expected financial outcome**, executes bounded recovery actions in a **controlled test environment**, and measures the **actual recovery result**.
 
 ---
 
-## Architecture
+## 🚀 Core Value Proposition
+
+In modern digital commerce, payment failures cause immediate revenue loss. Traditional payment gateways rely on crude, blanket retry rules that cause customer churn or billing disputes.
+
+**PulsePay combines**:
+$$\text{DETERMINISTIC FACTS} + \text{ML ANOMALY SIGNALS} + \text{RECOVERY PROBABILITY} + \text{EXPECTED VALUE} + \text{AI REASONING} + \text{SAFETY RULES} + \text{SIMULATION} + \text{MEASURED OUTCOMES}$$
+
+---
+
+## 🛠️ Complete System Architecture
 
 ```text
-  +-------------------------------------------------------------+
-  |                   Payment Ingestion Pipeline                |
-  +-------------------------------------------------------------+
-                                 │
-                                 ▼
-                    +──────────────────────────+
-                    |    State Reconstruction  |
-                    +──────────────────────────+
-                                 │
-                                 ▼
-                    +──────────────────────────+
-                    |     Evidence Engine      |
-                    +──────────────────────────+
-                                 │
-                   ┌─────────────┴─────────────┐
-                   ▼                           ▼
-        +─────────────────────+     +─────────────────────+
-        |   Blast Radius      |     |  Confidence Factors |
-        |   Exposure Metrics  |     |  Scoring Breakdown  |
-        +─────────────────────+     +─────────────────────+
-                   └─────────────┬─────────────┘
-                                 │
-                                 ▼
-                    +──────────────────────────+
-                    |   Incident Correlation   |
-                    +──────────────────────────+
-                                 │
-                   ┌─────────────┴─────────────┐
-                   ▼                           ▼
-        +─────────────────────+     +─────────────────────+
-        |   Causal Graphs     |     |   Isolation Forest  |
-        |   Visual Chain      |     |   ML Anomaly Model  |
-        +─────────────────────+     +─────────────────────+
-                   └─────────────┬─────────────┘
-                                 │
-                                 ▼
-                    +──────────────────────────+
-                    |   AI Root Cause Engine   |
-                    +──────────────────────────+
-                                 │
-                                 ▼
-                    +──────────────────────────+
-                    |    Operator Action Center|
-                    +──────────────────────────+
++─────────────────────────────────────────────────────────────────────────────+
+|                    PULSEPAY REVENUE RECOVERY PIPELINE                       |
++─────────────────────────────────────────────────────────────────────────────+
+                                       │
+                                       ▼
+                     +───────────────────────────────────+
+                     |        Revenue Risk Engine        |
+                     |  (Scans failed/unpaid transactions) |
+                     +───────────────────────────────────+
+                                       │
+                                       ▼
+                     +───────────────────────────────────+
+                     |     Recovery Scoring Engine       |
+                     |   (Calculates P(recovery) & decay) |
+                     +───────────────────────────────────+
+                                       │
+                                       ▼
+                     +───────────────────────────────────+
+                     |     Recovery Strategy Engine      |
+                     |  (Computes Net Expected Value EV) |
+                     +───────────────────────────────────+
+                                       │
+                                       ▼
+                     +───────────────────────────────────+
+                     |   Deterministic Policy Engine     |
+                     | (Enforces retry limits, no dups)  |
+                     +───────────────────────────────────+
+                                       │
+                         ┌─────────────┴─────────────┐
+                         ▼                           ▼
+            +─────────────────────────+ +─────────────────────────+
+            |    Recovery Simulator   | |    Recovery Executor    |
+            |   (Zero side-effects)   | | (Bounded synthetic rail)|
+            +─────────────────────────+ +─────────────────────────+
+                         └─────────────┬─────────────┘
+                                       │
+                                       ▼
+                     +───────────────────────────────────+
+                     |      Recovery Outcome Engine      |
+                     | (Measures actual vs expected EV)  |
+                     +───────────────────────────────────+
+                                       │
+                                       ▼
+                     +───────────────────────────────────+
+                     |    AI Recovery Agent Briefing     |
+                     | (5-point grounded justifications) |
+                     +───────────────────────────────────+
 ```
-
-## AI Safety & Boundaries
-- **Advisory Only**: The AI engine is strictly decision-support. It does **not** possess database mutation permissions or code blocks to execute refunds, initiate retries, or move money.
-- **Sanitized Inputs**: Strips credentials, CVVs, and PANs before forwarding metadata to LLM providers.
-
-## Installation & Running Locally
-
-### Prerequisites
-- Node.js (v18+)
-- MongoDB (running on `mongodb://127.0.0.1:27017/pulsepay`)
-- Python (v3.11)
-
-### Setup & Launch
-1. **Express Backend API**:
-   ```bash
-   cd server
-   npm install
-   npm run dev
-   ```
-2. **React Operations Dashboard**:
-   ```bash
-   cd client
-   npm install
-   npm run dev
-   ```
-3. **Python ML Service**:
-   ```bash
-   cd ml
-   py -3.11 -m venv venv
-   .\venv\Scripts\activate
-   pip install -r requirements.txt
-   uvicorn app.main:app --port 8000
-   ```
 
 ---
 
-## 3-Minute Demo Sequence
-1. Navigate to the **Developer Console** in the sidebar.
-2. Click **Activate E2E Demo Mode** in the header. (Logs will output as the system clears database entries, seeds 27 synthetic transactions, runs correlation aggregators, and trains the ML isolation forest).
-3. Wait for automatic redirection to the **Dashboard** page showing the operational metrics.
-4. Go to **Incidents** list and open the first incident (e.g. `INC-XXXXXX`).
-5. Inspect the upgraded details view:
-   * **Blast Radius**: Exposure grids (Merchants, failure rate, duration, ML flags).
-   * **Logical vs Arrival Ingestion Traces**: Visual chronological sequences comparing logical timestamps to arrival logs.
-   * **Causal Root Cause Graph**: Step-by-step CSS arrow flows.
-   * **Evidence Checklist**: Type severity fact tables.
-   * **Confidence Breakdown**: Factor weights (+25 state mismatch, +20 failures).
-   * **Operator action checklist**: dropdown status changes.
-6. Click **Run Investigation** in the AI card to generate root-cause advisor findings.
+## 💡 Key Capabilities
 
-## Testing
-Run all 29 tests (State Engine, Incident Engine, AI sanitizers, E2E integrations, and Evidence Engine timeline assertions) using:
+### 1. Revenue Risk Scanner & State Reconstruction
+- Ingests raw transaction event timelines and identifies failed or inconsistent transactions.
+- Classifies failures into deterministic taxonomies (`GATEWAY_TIMEOUT`, `WEBHOOK_DELIVERY_FAILURE`, `INSUFFICIENT_FUNDS`, `DUPLICATE_PAYMENT_RISK`, `CARD_EXPIRED`).
+
+### 2. Multi-Factor Probabilistic Scoring & Decay
+- Computes calibrated recovery probabilities $P(\text{recovery})$.
+- Features include: failure signature baseline, retry count decay ($-25\%$ per attempt), time half-life decay, and payment method weights.
+
+### 3. Expected Value Strategy Optimization
+- Formulates net financial yields across 7 recovery actions:
+  $$EV(\text{action}) = \text{Amount} \times P(\text{success} \mid \text{action}) - \text{Cost}(\text{action})$$
+- Evaluates: `RETRY_PAYMENT`, `SEND_RECOVERY_LINK`, `RECONCILE_WEBHOOK`, `ALTERNATE_PAYMENT_METHOD`, `WAIT_AND_RETRY`, and `STOP_RECOVERY`.
+
+### 4. Deterministic Safety Policy Engine
+- **Hard Max Retries**: Max 2 automated retries per transaction.
+- **Permanent Decline Gate**: Zero automated retries on expired/stolen cards or fraud flags.
+- **Duplicate Charge Lockout**: Halts actions if duplicate transaction detected within 60 seconds.
+- **Positive Expected Value**: Only actions with $EV > 0$ are deemed policy-eligible.
+
+### 5. What-If Strategy Studio & Campaign Launcher
+- Compares strategies side-by-side:
+  - *Strategy A: Expected Value Optimized*
+  - *Strategy B: Retry All*
+  - *Strategy C: High Confidence Only*
+  - *Strategy D: Digital Recovery Links Only*
+- Simulates yields with zero state changes before committing.
+
+### 6. Bounded Synthetic Execution
+- Executes recovery on synthetic test rails with immutable idempotency keys (`REC-{campaignId}-{paymentId}-{action}`).
+- Updates order and payment ledgers while tracking measured calibration error.
+
+### 7. AI Recovery Agent with 5-Point Explanations
+- Produces grounded justifications:
+  1. *Why this payment?*
+  2. *Why this action?*
+  3. *Why now?*
+  4. *Why not another action?*
+  5. *Why is it safe?*
+
+---
+
+## 🧪 Benchmark & Automated Test Suite
+
+PulsePay includes 9 automated test suites with 100% pass rates:
+- State Reconstruction Engine (`tests/stateEngine.test.js`)
+- Incident Aggregation & Clustering (`tests/incidentEngine.test.js`)
+- AI Root Cause Investigator (`tests/aiInvestigator.test.js`)
+- End-to-End Pipeline (`tests/fullPipeline.test.js`)
+- Evidence Engine & Causal Graphs (`tests/evidenceEngine.test.js`)
+- Transaction Data Lab & Baselines (`tests/dataLab.test.js`)
+- Upgrade Integration Suite (`tests/upgrades.test.js`)
+- Scenario Lab Service (`tests/labService.test.js`)
+- **AI Revenue Recovery & Policy Engine Suite (`tests/revenueRecovery.test.js`)**
+
+To run the complete test suite:
 ```bash
 cd server
 npm test
 ```
-*(All 29 checks are fully passing).*
+
+---
+
+## 🌐 Running Locally
+
+1. **Start Backend Server**:
+   ```bash
+   cd server
+   npm run dev
+   # Running on http://localhost:5000
+   ```
+
+2. **Start ML Python Service**:
+   ```bash
+   cd ml
+   .\venv\Scripts\python -m uvicorn app.main:app --port 8000
+   # Running on http://localhost:8000
+   ```
+
+3. **Start React Frontend**:
+   ```bash
+   cd client
+   npm run dev
+   # Running on http://localhost:5173
+   ```
+
+---
+
+## 🔒 Security & Data Provenance Notice
+
+All payment flows generated and processed in PulsePay are **synthetic simulations**. The platform moves zero real money, stores zero real card numbers or credentials, and connects only to simulated sandbox rails.

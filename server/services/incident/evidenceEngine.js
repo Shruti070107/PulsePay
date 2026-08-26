@@ -7,11 +7,13 @@ const Incident = require('../../models/Incident');
 /**
  * Builds chronological timeline of all events across payments in this incident.
  */
-const buildIncidentTimeline = async (transactionIds) => {
-  const [events, webhooks] = await Promise.all([
-    PaymentEvent.find({ paymentId: { $in: transactionIds } }),
-    WebhookEvent.find({ paymentId: { $in: transactionIds } })
-  ]);
+const buildIncidentTimeline = async (transactionIds, preloadedEvents, preloadedWebhooks) => {
+  const [events, webhooks] = (preloadedEvents && preloadedWebhooks) 
+    ? [preloadedEvents, preloadedWebhooks]
+    : await Promise.all([
+        PaymentEvent.find({ paymentId: { $in: transactionIds } }).lean(),
+        WebhookEvent.find({ paymentId: { $in: transactionIds } }).lean()
+      ]);
 
   const timeline = [];
 
@@ -349,16 +351,16 @@ const getRelatedIncidents = async (incident) => {
 const resolveRichIncidentDetails = async (incident) => {
   const transactionIds = incident.transactionIds;
 
-  // 1. Fetch related data
+  // 1. Fetch related data using lean queries for instant in-memory processing
   const [payments, events, orders, webhooks] = await Promise.all([
-    Payment.find({ paymentId: { $in: transactionIds } }),
-    PaymentEvent.find({ paymentId: { $in: transactionIds } }),
-    Order.find({ paymentId: { $in: transactionIds } }),
-    WebhookEvent.find({ paymentId: { $in: transactionIds } })
+    Payment.find({ paymentId: { $in: transactionIds } }).lean(),
+    PaymentEvent.find({ paymentId: { $in: transactionIds } }).lean(),
+    Order.find({ paymentId: { $in: transactionIds } }).lean(),
+    WebhookEvent.find({ paymentId: { $in: transactionIds } }).lean()
   ]);
 
   // 2. Build items
-  const timeline = await buildIncidentTimeline(transactionIds);
+  const timeline = await buildIncidentTimeline(transactionIds, events, webhooks);
   const evidenceItems = await buildEvidenceItems(incident, payments, events, orders, webhooks);
   const confidenceBreakdown = buildConfidenceBreakdown(incident, evidenceItems);
   const rootCauseGraph = buildRootCauseGraph(incident, evidenceItems);
@@ -374,6 +376,38 @@ const resolveRichIncidentDetails = async (incident) => {
   const failedPayments = payments.filter(p => p.status === 'failed' || p.status === 'processing');
   const failureRate = payments.length > 0 ? Math.round((failedPayments.length / payments.length) * 100) : 0;
 
+  // Compute breakdowns for blast radius
+  const byMerchantMap = {};
+  const byProviderMap = {};
+  payments.forEach(p => {
+    byMerchantMap[p.merchantId] = byMerchantMap[p.merchantId] || { count: 0, amount: 0 };
+    byMerchantMap[p.merchantId].count++;
+    byMerchantMap[p.merchantId].amount += p.amount;
+
+    const provider = p.paymentMethod || 'gateway_mock';
+    byProviderMap[provider] = byProviderMap[provider] || { count: 0, amount: 0 };
+    byProviderMap[provider].count++;
+    byProviderMap[provider].amount += p.amount;
+  });
+
+  const byEventTypeMap = {};
+  events.forEach(e => {
+    byEventTypeMap[e.type] = (byEventTypeMap[e.type] || 0) + 1;
+  });
+
+  const byFailureReasonMap = {};
+  events.filter(e => e.type === 'payment.failed' || e.type === 'webhook.failed' || e.type === 'refund.failed').forEach(e => {
+    const reason = e.metadata?.errorCode || e.metadata?.responseCode || 'unknown';
+    byFailureReasonMap[reason] = (byFailureReasonMap[reason] || 0) + 1;
+  });
+
+  const byTimeBucketMap = {};
+  payments.forEach(p => {
+    const hour = new Date(p.createdAt).getHours();
+    const bucket = `${String(hour).padStart(2, '0')}:00`;
+    byTimeBucketMap[bucket] = (byTimeBucketMap[bucket] || 0) + 1;
+  });
+
   const blastRadius = {
     affectedTransactions: payments.length,
     affectedCustomers: Array.from(new Set(payments.map(p => p.customerId))).length,
@@ -382,7 +416,12 @@ const resolveRichIncidentDetails = async (incident) => {
     affectedAmount: incident.affectedAmount,
     incidentDuration,
     failureRate: failureRate || 100,
-    mlAnomalyCount: mlAnomalyCount || 1
+    mlAnomalyCount: mlAnomalyCount || 1,
+    byMerchant: Object.entries(byMerchantMap).map(([merchantId, val]) => ({ merchantId, count: val.count, amount: val.amount })),
+    byProvider: Object.entries(byProviderMap).map(([provider, val]) => ({ provider, count: val.count, amount: val.amount })),
+    byEventType: Object.entries(byEventTypeMap).map(([eventType, count]) => ({ eventType, count })),
+    byFailureReason: Object.entries(byFailureReasonMap).map(([code, count]) => ({ code, count })),
+    byTimeBucket: Object.entries(byTimeBucketMap).map(([time, count]) => ({ time, count }))
   };
 
   // Resolve operator action checklist (persisted state check)

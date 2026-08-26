@@ -37,10 +37,11 @@ const buildIncidentContext = async (incidentId) => {
   }
 
   const transactionIds = incident.transactionIds || [];
+  const sampleTxnIds = transactionIds.slice(0, 15);
   const reconstructedStates = [];
 
-  // Fetch reconstructed states and ML predictions for all payments in parallel
-  await Promise.all(transactionIds.map(async (paymentId) => {
+  // Fetch reconstructed states and ML predictions for sampled payments in parallel
+  await Promise.all(sampleTxnIds.map(async (paymentId) => {
     try {
       const stateResult = await reconstructFullState(paymentId);
       const mlResult = await predictAnomaly(paymentId);
