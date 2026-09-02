@@ -23,6 +23,7 @@ const PaymentRecoveryDetail = () => {
   const [simResult, setSimResult] = useState(null);
   const [error, setError] = useState(null);
   const [techEvidenceOpen, setTechEvidenceOpen] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState(false);
 
   const fetchDetail = async () => {
     try {
@@ -322,26 +323,56 @@ const PaymentRecoveryDetail = () => {
         </div>
 
         {/* Action Controls */}
-        <div style={{ display: 'flex', gap: '12px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
-          <button 
-            className="btn btn-primary"
-            onClick={handleExecuteSingle}
-            disabled={executing || isRecovered || isBlocked}
-            style={{ fontSize: '0.84rem', padding: '9px 20px' }}
-          >
-            <Play size={15} fill="currentColor" />
-            {executing ? 'Executing Recovery...' : isRecovered ? 'Already Recovered' : isBlocked ? 'Blocked by Policy' : 'Execute Synthetic Recovery'}
-          </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
+          <div>
+            <button 
+              className="btn btn-primary"
+              onClick={handleExecuteSingle}
+              disabled={executing || isRecovered || isBlocked}
+              style={{ fontSize: '0.84rem', padding: '10px 24px' }}
+            >
+              <Play size={15} fill="currentColor" />
+              {executing ? 'Executing Recovery...' : isRecovered ? 'Already Recovered' : isBlocked ? 'Blocked by Policy' : 'Execute Synthetic Recovery'}
+            </button>
+          </div>
 
-          <button 
-            className="btn btn-secondary"
-            onClick={handleSimulateSingle}
-            disabled={simulating}
-            style={{ fontSize: '0.84rem', padding: '9px 18px' }}
-          >
-            <RotateCcw size={15} className={simulating ? 'animate-spin' : ''} />
-            Simulate Strategy
-          </button>
+          {/* Secondary Collapsed: Explore Alternative Strategies */}
+          <div style={{ marginTop: '2px' }}>
+            <button
+              onClick={() => setExploreOpen(!exploreOpen)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                fontSize: '0.78rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 0'
+              }}
+            >
+              {exploreOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              <span>Explore Alternative Strategies & Dry-Run Simulation</span>
+            </button>
+
+            {exploreOpen && (
+              <div style={{ marginTop: '10px', padding: '12px 16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                  Test recovery channels and Expected Value yield without committing transaction state.
+                </div>
+                <button 
+                  className="btn btn-secondary"
+                  onClick={handleSimulateSingle}
+                  disabled={simulating}
+                  style={{ fontSize: '0.76rem', padding: '6px 14px' }}
+                >
+                  <RotateCcw size={13} className={simulating ? 'animate-spin' : ''} />
+                  {simulating ? 'Simulating...' : 'Simulate Strategy'}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

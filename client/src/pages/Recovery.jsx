@@ -138,28 +138,6 @@ const Recovery = () => {
             Show me payments worth recovering, prioritized by Expected Value (EV).
           </p>
         </div>
-
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button 
-            className="btn btn-secondary" 
-            onClick={handleScan}
-            disabled={refreshing}
-          >
-            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-            Scan Risk
-          </button>
-
-          {selectedIds.length > 0 && (
-            <button 
-              className="btn btn-primary"
-              onClick={handleExecuteSelected}
-              disabled={executing}
-            >
-              <Play size={14} fill="currentColor" />
-              {executing ? 'Executing...' : `Recover Selected (${selectedIds.length})`}
-            </button>
-          )}
-        </div>
       </div>
 
       {/* 2. OPERATIONAL FILTERS & SEARCH */}
@@ -214,13 +192,6 @@ const Recovery = () => {
           <table>
             <thead>
               <tr>
-                <th style={{ width: '40px' }}>
-                  <input 
-                    type="checkbox" 
-                    onChange={handleSelectAll}
-                    checked={filteredOpps.length > 0 && selectedIds.length === filteredOpps.length}
-                  />
-                </th>
                 <th>Payment ID</th>
                 <th>Failure Reason</th>
                 <th>Recommended Action</th>
@@ -238,15 +209,15 @@ const Recovery = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                     <RotateCcw size={24} className="animate-spin" style={{ margin: '0 auto 10px', color: 'var(--color-info)' }} />
                     <div>Loading recovery queue...</div>
                   </td>
                 </tr>
               ) : filteredOpps.length === 0 ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                    No matching recovery opportunities found. Click "Scan Risk" to scan recent failed payments.
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                    No matching recovery opportunities found in queue.
                   </td>
                 </tr>
               ) : (
@@ -255,18 +226,9 @@ const Recovery = () => {
                   const isBlocked = opp.policyStatus === 'BLOCKED' || opp.recommendedStrategy === 'STOP_RECOVERY' || opp.recommendedAction === 'STOP_RECOVERY';
                   const isRecovered = opp.status === 'RECOVERED';
                   const prob = Math.round((opp.recoveryProbability || 0.85) * 100);
-                  const isSelected = selectedIds.includes(id);
 
                   return (
-                    <tr key={id} style={{ backgroundColor: isSelected ? 'rgba(99, 102, 241, 0.05)' : 'transparent' }}>
-                      <td>
-                        <input 
-                          type="checkbox" 
-                          checked={isSelected}
-                          onChange={() => handleSelectOne(id)}
-                          disabled={isBlocked || isRecovered}
-                        />
-                      </td>
+                    <tr key={id}>
                       <td>
                         <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
                           #{opp.paymentId || opp.opportunityId}

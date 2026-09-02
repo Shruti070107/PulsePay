@@ -141,12 +141,6 @@ function App() {
                         <span>Incident Intelligence</span>
                       </NavLink>
                     </li>
-                    <li>
-                      <NavLink to="/dev" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                        <Terminal size={16} />
-                        <span>Scenario Lab</span>
-                      </NavLink>
-                    </li>
                   </>
                 )}
               </ul>
