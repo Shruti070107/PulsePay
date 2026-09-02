@@ -136,7 +136,7 @@ const PaymentRecoveryDetail = () => {
     : Math.round(opportunity.amount * (opportunity.recoveryProbability || 0.89) - (opportunity.actionCost || 10));
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '1000px', margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '1000px', margin: '0 auto' }}>
       
       {/* Top Breadcrumb / Back Link */}
       <div>
@@ -148,182 +148,174 @@ const PaymentRecoveryDetail = () => {
         </button>
       </div>
 
-      {/* PAYMENT METADATA HEADER (OPERATIONAL TICKET BAR) */}
-      <div className="card" style={{ padding: '20px 22px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
+      {/* CONTINUOUS MASTER AUDIT PANEL */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        
+        {/* 1. PAYMENT METADATA HEADER (TICKET BAR) */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.06em' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.06em' }}>
               PAYMENT DECISION RECORD · AUDIT SHEET
             </div>
-            <h1 style={{ fontSize: '1.35rem', fontWeight: '700', marginTop: '4px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h1 style={{ fontSize: '1.25rem', fontWeight: '600', marginTop: '3px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
               #{opportunity.paymentId || opportunity.opportunityId}
-              <span style={{ fontSize: '1.2rem', color: 'var(--color-healthy)', fontFamily: 'var(--font-mono)', fontWeight: '600' }}>
+              <span style={{ fontSize: '1.15rem', color: 'var(--color-healthy)', fontFamily: 'var(--font-mono)', fontWeight: '600' }}>
                 ₹{opportunity.amount?.toLocaleString()}
               </span>
             </h1>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '3px' }}>
               Failure Code: <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>{opportunity.failureReason || opportunity.failureType || 'GATEWAY_TIMEOUT'}</strong> · Method: <span style={{ textTransform: 'uppercase', fontWeight: '600' }}>{opportunity.paymentMethod || 'UPI'}</span> · Attempt: <span style={{ fontFamily: 'var(--font-mono)' }}>{opportunity.attemptCount || 0}/2</span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div>
             {isRecovered ? (
-              <span className="badge badge-success" style={{ fontSize: '0.74rem', padding: '4px 9px' }}>
-                ✓ RECOVERED
+              <span className="badge badge-success" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
+                [RECOVERED]
               </span>
             ) : isBlocked ? (
-              <span className="badge badge-danger" style={{ fontSize: '0.74rem', padding: '4px 9px' }}>
-                ✕ BLOCKED BY SAFETY POLICY
+              <span className="badge badge-danger" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
+                [BLOCKED BY POLICY]
               </span>
             ) : (
-              <span className="badge badge-info" style={{ fontSize: '0.74rem', padding: '4px 9px' }}>
-                ✓ ACTION ELIGIBLE
+              <span className="badge badge-info" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
+                [ACTION ELIGIBLE]
               </span>
             )}
           </div>
         </div>
-      </div>
 
-      {/* ARCHITECTURAL PRINCIPLE CALLOUT */}
-      <div style={{ padding: '10px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '0.76rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ShieldCheck size={15} style={{ color: 'var(--color-healthy)' }} />
-          <strong style={{ color: 'var(--text-primary)' }}>Core Decision Principle:</strong>
-          <span style={{ color: 'var(--text-secondary)' }}>
-            ML estimates probability. Deterministic policies control whether an action is allowed.
-          </span>
-        </div>
-      </div>
-
-      {/* SECTION 1: TELEMETRY & EVENT TIMELINE */}
-      <div className="card" style={{ padding: '18px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-          <h3 style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            1. Telemetry & Event History
-          </h3>
-          <span style={{ fontSize: '0.7rem', color: 'var(--color-info)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Database size={12} /> MongoDB Stored Audit Log
-          </span>
+        {/* 2. ARCHITECTURAL PRINCIPLE CALLOUT BAR */}
+        <div style={{ padding: '10px 20px', background: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-color)', fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Core Decision Principle:</strong> ML estimates probability. Deterministic policies control whether an action is allowed.
         </div>
 
-        <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '3px' }}>
-          Immutable lifecycle events reconstructed from database stream:
-        </p>
-        
-        {/* Timeline Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '8px', marginTop: '12px' }}>
-          <div style={{ padding: '10px 12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-info)' }}>
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Step 1</span>
-            <div style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-primary)', marginTop: '2px' }}>Payment Created</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>₹{opportunity.amount?.toLocaleString()} intent</div>
+        {/* 3. SECTION 1: TELEMETRY & EVENT HISTORY */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.06em' }}>
+              1. TELEMETRY & EVENT HISTORY
+            </div>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              MongoDB Stored Audit Trail
+            </span>
           </div>
 
-          <div style={{ padding: '10px 12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-info)' }}>
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Step 2</span>
-            <div style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-primary)', marginTop: '2px' }}>Gateway Request</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Acquiring bank dispatch</div>
-          </div>
+          {/* Flat 5-Step Timeline Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginTop: '12px' }}>
+            <div style={{ padding: '8px 10px', borderLeft: '2px solid var(--color-info)' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Step 1</div>
+              <div style={{ fontSize: '0.78rem', fontWeight: '600', color: 'var(--text-primary)' }}>Payment Created</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>₹{opportunity.amount?.toLocaleString()} intent</div>
+            </div>
 
-          <div style={{ padding: '10px 12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-critical)' }}>
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-critical)' }}>Step 3</span>
-            <div style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-critical)', marginTop: '2px' }}>Exception Logged</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{opportunity.failureReason || 'Gateway Timeout'}</div>
-          </div>
+            <div style={{ padding: '8px 10px', borderLeft: '2px solid var(--color-info)' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Step 2</div>
+              <div style={{ fontSize: '0.78rem', fontWeight: '600', color: 'var(--text-primary)' }}>Gateway Request</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Acquiring dispatch</div>
+            </div>
 
-          <div style={{ padding: '10px 12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-critical)' }}>
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Step 4</span>
-            <div style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-primary)', marginTop: '2px' }}>Marked Failed</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Order status: unpaid</div>
-          </div>
+            <div style={{ padding: '8px 10px', borderLeft: '2px solid var(--color-critical)' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--color-critical)' }}>Step 3</div>
+              <div style={{ fontSize: '0.78rem', fontWeight: '600', color: 'var(--color-critical)' }}>Exception Logged</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{opportunity.failureReason || 'Gateway Timeout'}</div>
+            </div>
 
-          <div style={{ padding: '10px 12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-healthy)' }}>
-            <span style={{ fontSize: '0.65rem', color: 'var(--color-healthy)' }}>Step 5</span>
-            <div style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-healthy)', marginTop: '2px' }}>Opportunity Staged</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Calibrated P: {prob}%</div>
-          </div>
-        </div>
-      </div>
+            <div style={{ padding: '8px 10px', borderLeft: '2px solid var(--color-critical)' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Step 4</div>
+              <div style={{ fontSize: '0.78rem', fontWeight: '600', color: 'var(--text-primary)' }}>Marked Failed</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Order: unpaid</div>
+            </div>
 
-      {/* SECTION 2: CALIBRATED MODEL INFERENCE & EXPECTED VALUE */}
-      <div className="card" style={{ padding: '18px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-          <div>
-            <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>PROBABILISTIC INFERENCE</span>
-            <h3 style={{ fontSize: '0.88rem', fontWeight: '700', color: 'var(--text-primary)', marginTop: '4px' }}>
-              2. ML Recovery Scoring & Expected Value
-            </h3>
-          </div>
-          <span style={{ fontSize: '0.7rem', color: 'var(--color-info)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Cpu size={12} /> Isotonic PAVA & EV Model
-          </span>
-        </div>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px', marginTop: '12px' }}>
-          <div style={{ padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
-            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>ML Recovery Estimate</span>
-            <p style={{ fontSize: '1.35rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: isBlocked ? 'var(--text-muted)' : (prob >= 75 ? 'var(--color-healthy)' : 'var(--color-warning)'), marginTop: '2px' }}>
-              {isBlocked ? '0%' : `${prob}%`}
-            </p>
-            <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Calibrated probability (PAVA)</div>
-          </div>
-
-          <div style={{ padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
-            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Recommended Strategy</span>
-            <p style={{ fontSize: '1.05rem', fontWeight: '600', color: isBlocked ? 'var(--text-muted)' : 'var(--color-info)', marginTop: '4px' }}>
-              {String(opportunity.recommendedStrategy || opportunity.recommendedAction || 'DELAYED RETRY').replace(/_/g, ' ')}
-            </p>
-            <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Optimal yield channel</div>
-          </div>
-
-          <div style={{ padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
-            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Expected Value (EV)</span>
-            <p style={{ fontSize: '1.35rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: isBlocked ? 'var(--text-muted)' : 'var(--color-healthy)', marginTop: '2px' }}>
-              ₹{ev.toLocaleString()}
-            </p>
-            <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Net yield after action cost</div>
+            <div style={{ padding: '8px 10px', borderLeft: '2px solid var(--color-healthy)' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--color-healthy)' }}>Step 5</div>
+              <div style={{ fontSize: '0.78rem', fontWeight: '600', color: 'var(--color-healthy)' }}>Opportunity Staged</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Calibrated P: {prob}%</div>
+            </div>
           </div>
         </div>
 
-        {/* Evidence Narrative */}
-        <div style={{ marginTop: '12px', padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-          <strong style={{ color: 'var(--text-primary)' }}>Evidence-Grounded Recommendation:</strong>
-          <p style={{ marginTop: '3px' }}>
-            PulsePay recommends <strong>{String(opportunity.recommendedStrategy || 'DELAYED RETRY').replace(/_/g, ' ')}</strong> because provider health has recovered, the transaction has remaining retry budget (attempt {opportunity.attemptCount || 0} of 2), and the calibrated recovery probability produces a positive expected value of ₹{ev.toLocaleString()}.
-          </p>
-        </div>
-      </div>
+        {/* 4. SECTION 2: CALIBRATED MODEL INFERENCE & EXPECTED VALUE */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.06em' }}>
+              2. PROBABILISTIC INFERENCE & EXPECTED VALUE
+            </div>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              Isotonic PAVA & EV Model
+            </span>
+          </div>
 
-      {/* SECTION 3: DETERMINISTIC SAFETY POLICY & EXECUTION */}
-      <div className="card" style={{ padding: '18px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-          <div>
-            <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>DETERMINISTIC GUARDRAILS</span>
-            <h3 style={{ fontSize: '0.88rem', fontWeight: '700', color: 'var(--text-primary)', marginTop: '4px' }}>
-              3. Safety Policy & Bounded Execution
-            </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
+            <div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
+                Calibrated Probability
+              </div>
+              <div style={{ fontSize: '1.25rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: isBlocked ? 'var(--text-muted)' : (prob >= 75 ? 'var(--color-healthy)' : 'var(--color-warning)'), marginTop: '2px' }}>
+                {isBlocked ? '0%' : `${prob}%`}
+              </div>
+              <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>PAVA Monotonic Knots</div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
+                Recommended Strategy
+              </div>
+              <div style={{ fontSize: '1.05rem', fontWeight: '600', color: isBlocked ? 'var(--text-muted)' : 'var(--color-info)', marginTop: '3px' }}>
+                {String(opportunity.recommendedStrategy || opportunity.recommendedAction || 'DELAYED RETRY').replace(/_/g, ' ')}
+              </div>
+              <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Optimal yield channel</div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
+                Net Expected Value (EV)
+              </div>
+              <div style={{ fontSize: '1.25rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: isBlocked ? 'var(--text-muted)' : 'var(--color-healthy)', marginTop: '2px' }}>
+                ₹{ev.toLocaleString()}
+              </div>
+              <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Net yield after action cost</div>
+            </div>
           </div>
-          <span style={{ fontSize: '0.7rem', color: 'var(--color-healthy)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <ShieldCheck size={12} /> {isBlocked ? 'Action Blocked by Policy' : 'Passed All Invariants'}
-          </span>
+
+          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-color)', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Evidence-Grounded Recommendation:</strong> PulsePay recommends <strong>{String(opportunity.recommendedStrategy || 'DELAYED RETRY').replace(/_/g, ' ')}</strong> because provider health has recovered, retry budget is available (attempt {opportunity.attemptCount || 0} of 2), and calibrated probability yields a positive expected value of ₹{ev.toLocaleString()}.
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', marginTop: '12px' }}>
-          <div style={{ padding: '9px 12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.76rem', color: 'var(--color-healthy)' }}>
-            <CheckCircle2 size={14} /> Permanent decline gate (Not expired/stolen)
+        {/* 5. SECTION 3: DETERMINISTIC SAFETY POLICY & BOUNDED EXECUTION */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.06em' }}>
+              3. DETERMINISTIC GUARDRAILS & SAFETY PREFLIGHT
+            </div>
+            <span style={{ fontSize: '0.7rem', color: isBlocked ? 'var(--color-critical)' : 'var(--color-healthy)', fontWeight: '600' }}>
+              {isBlocked ? '[BLOCKED BY POLICY]' : '[PASSED ALL INVARIANTS]'}
+            </span>
           </div>
-          <div style={{ padding: '9px 12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.76rem', color: 'var(--color-healthy)' }}>
-            <CheckCircle2 size={14} /> Duplicate lockout (0 duplicate risk)
-          </div>
-          <div style={{ padding: '9px 12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.76rem', color: 'var(--color-healthy)' }}>
-            <CheckCircle2 size={14} /> Retry budget check (Limit ≤ 2)
-          </div>
-          <div style={{ padding: '9px 12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.76rem', color: 'var(--color-healthy)' }}>
-            <CheckCircle2 size={14} /> Financial viability gate (EV &gt; ₹0)
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px', marginTop: '12px' }}>
+            <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+              <span style={{ color: 'var(--color-healthy)', fontWeight: '600', fontFamily: 'var(--font-mono)', marginRight: '6px' }}>[PASS]</span>
+              Permanent decline gate (Not expired/stolen)
+            </div>
+            <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+              <span style={{ color: 'var(--color-healthy)', fontWeight: '600', fontFamily: 'var(--font-mono)', marginRight: '6px' }}>[PASS]</span>
+              Duplicate lockout (0 duplicate risk)
+            </div>
+            <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+              <span style={{ color: 'var(--color-healthy)', fontWeight: '600', fontFamily: 'var(--font-mono)', marginRight: '6px' }}>[PASS]</span>
+              Retry budget check (Limit ≤ 2)
+            </div>
+            <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+              <span style={{ color: 'var(--color-healthy)', fontWeight: '600', fontFamily: 'var(--font-mono)', marginRight: '6px' }}>[PASS]</span>
+              Financial viability gate (EV &gt; ₹0)
+            </div>
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
+        {/* 6. EXECUTION BAR */}
+        <div style={{ padding: '16px 20px', background: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div>
             <button 
               className="btn btn-primary"
@@ -336,8 +328,8 @@ const PaymentRecoveryDetail = () => {
             </button>
           </div>
 
-          {/* Secondary Collapsed: Explore Alternative Strategies */}
-          <div style={{ marginTop: '2px' }}>
+          {/* Collapsed Secondary Simulation */}
+          <div>
             <button
               onClick={() => setExploreOpen(!exploreOpen)}
               style={{
@@ -357,7 +349,7 @@ const PaymentRecoveryDetail = () => {
             </button>
 
             {exploreOpen && (
-              <div style={{ marginTop: '8px', padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ marginTop: '8px', padding: '10px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
                   Test recovery channels and Expected Value yield without committing transaction state.
                 </div>
@@ -374,72 +366,70 @@ const PaymentRecoveryDetail = () => {
             )}
           </div>
         </div>
-      </div>
 
-      {/* SECTION 4: WHY? (COLLAPSIBLE TECHNICAL EVIDENCE) */}
-      <div className="card" style={{ padding: '18px 22px' }}>
-        <button 
-          onClick={() => setTechEvidenceOpen(!techEvidenceOpen)}
-          style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', padding: 0 }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Database size={16} style={{ color: 'var(--color-info)' }} />
-            <span style={{ fontSize: '0.92rem', fontWeight: '700' }}>
-              Why? (View Technical Evidence & Telemetry Signals)
+        {/* 7. SECTION 4: COLLAPSIBLE TECHNICAL EVIDENCE */}
+        <div style={{ padding: '14px 20px' }}>
+          <button 
+            onClick={() => setTechEvidenceOpen(!techEvidenceOpen)}
+            style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', padding: 0 }}
+          >
+            <span style={{ fontSize: '0.82rem', fontWeight: '600' }}>
+              Technical Evidence & Telemetry Signals
             </span>
-          </div>
-          {techEvidenceOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
+            {techEvidenceOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
 
-        {techEvidenceOpen && (
-          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
-              <div style={{ padding: '10px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Raw Heuristic Estimate</span>
-                <div style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                  {Math.round((opportunity.rawProbability || 0.88) * 100)}%
+          {techEvidenceOpen && (
+            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                <div>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Raw Heuristic Estimate</span>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+                    {Math.round((opportunity.rawProbability || 0.88) * 100)}%
+                  </div>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Calibrated Estimate (PAVA)</span>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--color-healthy)', fontFamily: 'var(--font-mono)' }}>
+                    {Math.round((opportunity.recoveryProbability || 0.89) * 100)}% (Monotonic Knots)
+                  </div>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Action Cost</span>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+                    ₹10 (Gateway channel fee)
+                  </div>
                 </div>
               </div>
 
-              <div style={{ padding: '10px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Calibrated Estimate (Isotonic PAVA)</span>
-                <div style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--color-healthy)', fontFamily: 'var(--font-mono)' }}>
-                  {Math.round((opportunity.recoveryProbability || 0.89) * 100)}% (Monotonic Knots)
-                </div>
-              </div>
-
-              <div style={{ padding: '10px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Action Cost</span>
-                <div style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                  ₹10 (Gateway channel fee)
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <strong style={{ color: 'var(--text-primary)' }}>Supporting Telemetry Signals:</strong>
-              <ul style={{ listStyle: 'disc inside', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <li>Failure Code: Transient Timeout (+45% recovery weight)</li>
-                <li>Customer History: Tier 1 Low-Fraud (+20% weight)</li>
-                <li>Retry Budget: Attempt {opportunity.attemptCount || 0} of 2 available</li>
-                <li>Duplicate Hash Guard: Idempotency check verified zero collisions</li>
-              </ul>
-            </div>
-
-            {opportunity.events && opportunity.events.length > 0 && (
               <div>
-                <strong style={{ color: 'var(--text-primary)' }}>MongoDB Raw Audit Trail:</strong>
-                <div style={{ marginTop: '6px', background: 'var(--bg-tertiary)', padding: '10px', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>
-                  {opportunity.events.map((ev, idx) => (
-                    <div key={idx} style={{ padding: '2px 0' }}>
-                      [{new Date(ev.timestamp || Date.now()).toLocaleTimeString()}] {ev.type || ev.eventType} · {ev.status} · Source: {ev.source || 'gateway'}
-                    </div>
-                  ))}
-                </div>
+                <strong style={{ color: 'var(--text-primary)' }}>Supporting Telemetry Signals:</strong>
+                <ul style={{ listStyle: 'disc inside', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <li>Failure Code: Transient Timeout (+45% recovery weight)</li>
+                  <li>Customer History: Tier 1 Low-Fraud (+20% weight)</li>
+                  <li>Retry Budget: Attempt {opportunity.attemptCount || 0} of 2 available</li>
+                  <li>Duplicate Hash Guard: Idempotency check verified zero collisions</li>
+                </ul>
               </div>
-            )}
-          </div>
-        )}
+
+              {opportunity.events && opportunity.events.length > 0 && (
+                <div>
+                  <strong style={{ color: 'var(--text-primary)' }}>MongoDB Raw Audit Trail:</strong>
+                  <div style={{ marginTop: '4px', background: 'var(--bg-tertiary)', padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>
+                    {opportunity.events.map((ev, idx) => (
+                      <div key={idx} style={{ padding: '2px 0' }}>
+                        [{new Date(ev.timestamp || Date.now()).toLocaleTimeString()}] {ev.type || ev.eventType} · {ev.status} · Source: {ev.source || 'gateway'}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
       </div>
 
     </div>

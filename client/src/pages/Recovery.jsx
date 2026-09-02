@@ -126,15 +126,15 @@ const Recovery = () => {
   }, [opportunities, search, activeTab]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       
       {/* 1. HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', paddingBottom: '14px', borderBottom: '1px solid var(--border-color)' }}>
         <div>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: '600', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
             Recovery Queue
           </h1>
-          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
             Show me payments worth recovering, prioritized by Expected Value (EV).
           </p>
         </div>
@@ -259,11 +259,11 @@ const Recovery = () => {
                       </td>
                       <td>
                         {isRecovered ? (
-                          <span className="badge badge-success">Recovered</span>
+                          <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>[RECOVERED]</span>
                         ) : isBlocked ? (
-                          <span className="badge badge-danger">Blocked by Safety Policy</span>
+                          <span className="badge badge-danger" style={{ fontSize: '0.7rem' }}>[BLOCKED]</span>
                         ) : (
-                          <span className="badge badge-info">✓ Eligible</span>
+                          <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>[ELIGIBLE]</span>
                         )}
                       </td>
                       <td style={{ textAlign: 'right' }}>

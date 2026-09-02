@@ -151,26 +151,25 @@ const Dashboard = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       
       {/* 1. HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', paddingBottom: '14px', borderBottom: '1px solid var(--border-color)' }}>
         <div>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: '600', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
             Revenue Center
           </h1>
-          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
             Find recoverable revenue and take the safest next action.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button 
             className="btn btn-secondary"
             onClick={() => setHowItWorksOpen(true)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            style={{ fontSize: '0.78rem' }}
           >
-            <BookOpen size={14} style={{ color: 'var(--color-info)' }} />
             How PulsePay Works
           </button>
 
@@ -178,8 +177,9 @@ const Dashboard = () => {
             className="btn btn-secondary" 
             onClick={handleScan}
             disabled={refreshing || demoState === 'RUNNING'}
+            style={{ fontSize: '0.78rem' }}
           >
-            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
             Scan Risk
           </button>
 
@@ -187,8 +187,9 @@ const Dashboard = () => {
             className="btn btn-primary" 
             onClick={handleRunDemo}
             disabled={demoState === 'RUNNING'}
+            style={{ fontSize: '0.78rem' }}
           >
-            <Play size={14} fill="currentColor" />
+            <Play size={13} fill="currentColor" />
             {demoState === 'RUNNING' ? 'Running Demo...' : '1-Click Recovery Demo'}
           </button>
         </div>
@@ -364,39 +365,39 @@ const Dashboard = () => {
             {/* LEFT COLUMN: IDENTIFIER & EVIDENCE */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="badge badge-info" style={{ fontSize: '0.66rem' }}>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.06em' }}>
                   NEXT BEST OPPORTUNITY
-                </span>
+                </div>
                 <span className="badge badge-neutral" style={{ fontSize: '0.66rem', fontFamily: 'var(--font-mono)' }}>
                   #{topOpportunity.paymentId || topOpportunity.opportunityId}
                 </span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginTop: '8px' }}>
-                <span style={{ fontSize: '1.45rem', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginTop: '6px' }}>
+                <span style={{ fontSize: '1.35rem', fontWeight: '600', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                   ₹{topOpportunity.amount?.toLocaleString()}
                 </span>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>revenue at risk</span>
               </div>
 
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
-                Failure Reason: <strong style={{ color: 'var(--text-primary)' }}>{topOpportunity.failureReason || topOpportunity.failureType || 'GATEWAY_TIMEOUT'}</strong>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Failure Code: <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>{topOpportunity.failureReason || topOpportunity.failureType || 'GATEWAY_TIMEOUT'}</strong>
               </div>
 
               <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Context: Single attempt · UPI rail · Downstream acquiring latency timeout
+                Context: Single attempt · UPI rail · Acquiring latency timeout
               </div>
             </div>
 
             {/* RIGHT COLUMN: CALIBRATED METRICS & CTA */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-tertiary)', padding: '14px 18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'var(--bg-tertiary)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
                     Calibrated Probability
                   </div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', marginTop: '2px' }}>
                     {Math.round((topOpportunity.recoveryProbability || 0.89) * 100)}%
                   </div>
                 </div>
@@ -405,23 +406,22 @@ const Dashboard = () => {
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
                     Net Expected Value
                   </div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', marginTop: '2px' }}>
                     ₹{(topOpportunity.expectedValue || Math.round(topOpportunity.amount * (topOpportunity.recoveryProbability || 0.89) - (topOpportunity.actionCost || 10))).toLocaleString()}
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
                   Action: <strong style={{ color: 'var(--color-info)' }}>{String(topOpportunity.recommendedStrategy || topOpportunity.recommendedAction || 'DELAYED RETRY').replace(/_/g, ' ')}</strong>
                 </div>
 
                 <button 
-                  className="btn btn-primary"
+                  className="btn btn-secondary"
                   onClick={() => navigate(`/investigation/${topOpportunity.paymentId || topOpportunity.opportunityId}`)}
-                  style={{ fontSize: '0.82rem', padding: '7px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  style={{ fontSize: '0.78rem', padding: '6px 14px' }}
                 >
-                  <Compass size={14} />
                   Investigate Payment →
                 </button>
               </div>

@@ -119,7 +119,7 @@ const Campaigns = () => {
         {/* Clean What-If Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', marginTop: '18px' }}>
           
-          <div style={{ padding: '18px', background: selectedStrategy === 'OPTIMIZED' ? 'rgba(99, 102, 241, 0.08)' : 'var(--bg-tertiary)', border: selectedStrategy === 'OPTIMIZED' ? '1px solid var(--color-info)' : '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} onClick={() => setSelectedStrategy('OPTIMIZED')}>
+          <div style={{ padding: '18px', background: selectedStrategy === 'OPTIMIZED' ? 'var(--color-info-bg)' : 'var(--bg-tertiary)', border: selectedStrategy === 'OPTIMIZED' ? '1px solid var(--color-info)' : '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} onClick={() => setSelectedStrategy('OPTIMIZED')}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="badge badge-info">RECOMMENDED</span>
               <span style={{ fontSize: '0.72rem', color: 'var(--color-healthy)', fontWeight: '600' }}>Best Net Yield</span>
@@ -136,7 +136,7 @@ const Campaigns = () => {
             </div>
           </div>
 
-          <div style={{ padding: '18px', background: selectedStrategy === 'HIGH_CONFIDENCE_ONLY' ? 'rgba(99, 102, 241, 0.08)' : 'var(--bg-tertiary)', border: selectedStrategy === 'HIGH_CONFIDENCE_ONLY' ? '1px solid var(--color-info)' : '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} onClick={() => setSelectedStrategy('HIGH_CONFIDENCE_ONLY')}>
+          <div style={{ padding: '18px', background: selectedStrategy === 'HIGH_CONFIDENCE_ONLY' ? 'var(--color-info-bg)' : 'var(--bg-tertiary)', border: selectedStrategy === 'HIGH_CONFIDENCE_ONLY' ? '1px solid var(--color-info)' : '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} onClick={() => setSelectedStrategy('HIGH_CONFIDENCE_ONLY')}>
             <span className="badge badge-neutral">CONSERVATIVE</span>
             <h3 style={{ fontSize: '1rem', fontWeight: '700', marginTop: '8px', color: 'var(--text-primary)' }}>
               2. High Confidence Only (P ≥ 85%)
@@ -150,7 +150,7 @@ const Campaigns = () => {
             </div>
           </div>
 
-          <div style={{ padding: '18px', background: selectedStrategy === 'RETRY_ALL' ? 'rgba(99, 102, 241, 0.08)' : 'var(--bg-tertiary)', border: selectedStrategy === 'RETRY_ALL' ? '1px solid var(--color-info)' : '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} onClick={() => setSelectedStrategy('RETRY_ALL')}>
+          <div style={{ padding: '18px', background: selectedStrategy === 'RETRY_ALL' ? 'var(--color-info-bg)' : 'var(--bg-tertiary)', border: selectedStrategy === 'RETRY_ALL' ? '1px solid var(--color-info)' : '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} onClick={() => setSelectedStrategy('RETRY_ALL')}>
             <span className="badge badge-warning">NAIVE BASELINE</span>
             <h3 style={{ fontSize: '1rem', fontWeight: '700', marginTop: '8px', color: 'var(--text-primary)' }}>
               3. Blind Retry All

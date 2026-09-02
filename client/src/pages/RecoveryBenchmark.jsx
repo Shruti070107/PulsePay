@@ -124,25 +124,25 @@ const RecoveryBenchmark = () => {
   const unsafePrevented = benchmark?.unsafeActionsPrevented ?? benchmark?.calibrationComparison?.unsafeActionsAfter ?? 317;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
+      {/* Top Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', paddingBottom: '14px', borderBottom: '1px solid var(--border-color)' }}>
         <div>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-            Does PulsePay actually outperform blind retry?
+          <h1 style={{ fontSize: '1.25rem', fontWeight: '600', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+            Benchmark & Model Calibration
           </h1>
-          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-            Empirical benchmark: 10,000 synthetic payment attempts (7,000 training, 3,000 unseen evaluation).
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+            Empirical validation on 10,000 synthetic records with strict out-of-sample evaluation.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button 
-            className="btn btn-secondary" 
+            className="btn btn-secondary"
             onClick={() => setMethodologyOpen(!methodologyOpen)}
+            style={{ fontSize: '0.78rem' }}
           >
-            <FileText size={14} />
             {methodologyOpen ? 'Hide Methodology' : 'View Methodology'}
           </button>
 
@@ -150,8 +150,9 @@ const RecoveryBenchmark = () => {
             className="btn btn-primary" 
             onClick={handleRunBenchmark}
             disabled={running}
+            style={{ fontSize: '0.78rem' }}
           >
-            <Play size={14} fill="currentColor" />
+            <Play size={13} fill="currentColor" />
             {running ? 'Running Benchmark...' : 'Run 10k Benchmark'}
           </button>
         </div>
@@ -159,19 +160,20 @@ const RecoveryBenchmark = () => {
 
       {/* Running Banner */}
       {running && (
-        <div style={{ padding: '14px 18px', borderRadius: 'var(--radius-md)', background: 'var(--color-info-bg)', border: '1px solid var(--color-info-border)', color: 'var(--color-info)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <RotateCcw size={18} className="animate-spin" />
+        <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--color-info-bg)', border: '1px solid var(--color-info-border)', color: 'var(--color-info)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <RotateCcw size={16} className="animate-spin" />
           <div>
             <strong>Benchmark Experiment in Progress:</strong>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{runStep}</div>
+            <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{runStep}</div>
           </div>
         </div>
       )}
 
       {/* Dataset Provenance Bar */}
-      <div style={{ padding: '10px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="badge badge-neutral">SYNTHETIC BENCHMARK</span>
+      <div style={{ padding: '8px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.06em' }}>BENCHMARK PROVENANCE</span>
+          <span>·</span>
           <span>Dataset: <strong>10,000 attempts</strong></span>
           <span>·</span>
           <span>Training: <strong>7,000 (70%)</strong></span>
@@ -182,74 +184,76 @@ const RecoveryBenchmark = () => {
           <span>·</span>
           <span>Calibration: <strong>Isotonic Regression (PAVA)</strong></span>
         </div>
-        <div style={{ color: 'var(--color-healthy)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <ShieldCheck size={14} /> Anti-Peeking Ground-Truth Isolation Active
+        <div style={{ color: 'var(--color-healthy)', fontSize: '0.72rem', fontWeight: '600' }}>
+          [ANTI-PEEKING ISOLATION ACTIVE]
         </div>
       </div>
 
       {/* 1. CORE EXPERIMENTAL RESULT HERO */}
-      <div className="card" style={{ padding: '24px', background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.04) 0%, rgba(17, 24, 39, 0.95) 100%)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
+      <div className="card" style={{ padding: '20px 22px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <span className="badge badge-success">UNSEEN EVALUATION BENCHMARK (3,000 TRANSACTIONS)</span>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginTop: '8px', color: 'var(--text-primary)' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.06em' }}>
+              UNSEEN EVALUATION BENCHMARK (3,000 TRANSACTIONS)
+            </div>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '600', marginTop: '4px', color: 'var(--text-primary)' }}>
               PulsePay: ₹1.41 Cr vs Blind Retry: ₹1.16 Cr (+₹24.45 Lakh / +21.0% Net Lift)
             </h2>
-            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
               Evaluated on 3,000 strictly isolated evaluation transactions without peeking or data leakage.
             </p>
           </div>
         </div>
 
         {/* 4 Clean Metric Pillars */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginTop: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginTop: '16px' }}>
           
-          <div style={{ padding: '16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--color-healthy)' }}>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
+          <div style={{ padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-healthy)' }}>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
               PulsePay Net Recovery
             </span>
-            <p style={{ fontSize: '1.35rem', fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', marginTop: '4px' }}>
+            <p style={{ fontSize: '1.25rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', marginTop: '2px' }}>
               ₹1.41 Cr
             </p>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>0 duplicate charges incurred</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>0 duplicate charges incurred</div>
           </div>
 
-          <div style={{ padding: '16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--color-warning)' }}>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
+          <div style={{ padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-warning)' }}>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
               Blind Retry Net Recovery
             </span>
-            <p style={{ fontSize: '1.35rem', fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            <p style={{ fontSize: '1.25rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginTop: '2px' }}>
               ₹1.16 Cr
             </p>
-            <div style={{ fontSize: '0.7rem', color: 'var(--color-critical)' }}>583 duplicate charges incurred</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--color-critical)' }}>583 duplicate charges incurred</div>
           </div>
 
-          <div style={{ padding: '16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--color-info)' }}>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
+          <div style={{ padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-info)' }}>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
               Precision / Recall
             </span>
-            <p style={{ fontSize: '1.35rem', fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--color-info)', marginTop: '4px' }}>
+            <p style={{ fontSize: '1.25rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: 'var(--color-info)', marginTop: '2px' }}>
               96.0% / 100.0%
             </p>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>317 unsafe actions prevented</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>317 unsafe actions prevented</div>
           </div>
 
-          <div style={{ padding: '16px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--color-healthy)' }}>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
+          <div style={{ padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-healthy)' }}>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
               Calibration ECE (PAVA)
             </span>
-            <p style={{ fontSize: '1.35rem', fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', marginTop: '4px' }}>
+            <p style={{ fontSize: '1.25rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', marginTop: '2px' }}>
               33.7% → 14.8%
             </p>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Brier: 0.2515 → 0.1483</div>
           </div>
 
         </div>
       </div>
 
       {/* 2. WHY THIS MATTERS SECTION */}
-      <div className="card" style={{ padding: '20px 24px' }}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Info size={16} style={{ color: 'var(--color-info)' }} />
+      <div className="card" style={{ padding: '18px 20px' }}>
+        <h3 style={{ fontSize: '0.88rem', fontWeight: '600', color: 'var(--text-primary)' }}>
           Why This Benchmark Matters
         </h3>
         <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.6 }}>
