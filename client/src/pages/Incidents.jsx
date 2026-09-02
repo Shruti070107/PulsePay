@@ -63,15 +63,19 @@ const Incidents = () => {
   });
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between" style={{ marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>Incident Registry</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Correlated payment mismatches, webhook failures, and gateway anomalies</p>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+            Incident Intelligence
+          </h1>
+          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+            Correlated payment mismatches, webhook delivery failures, and acquiring anomalies.
+          </p>
         </div>
         <button className="btn btn-secondary" onClick={fetchIncidents}>
-          <RefreshCw size={16} /> Reload Registry
+          <RefreshCw size={14} /> Reload Registry
         </button>
       </div>
 

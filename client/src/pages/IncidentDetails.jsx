@@ -15,9 +15,11 @@ import {
   ShieldAlert, Terminal, Play, CheckCircle, Clock, Check, AlertTriangle, AlertCircle,
   Users, Activity, Coins, FolderSync, Clock3, AlertOctagon, ArrowRight, ChevronRight, Sparkles, HelpCircle, BarChart3, Layers
 } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
 const IncidentDetails = () => {
   const { id } = useParams();
+  const { addToast } = useToast();
   const [incident, setIncident] = useState(null);
   const [investigations, setInvestigations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,8 +107,9 @@ const IncidentDetails = () => {
       // Refetch details to pull new AI run logs in the audit trail
       const incRes = await getIncident(id);
       setIncident(incRes.data);
+      addToast('AI incident investigation completed.', 'success');
     } catch (err) {
-      alert('AI investigation failed: ' + err.message);
+      addToast('AI investigation failed: ' + err.message, 'error');
     } finally {
       setInvestigating(false);
     }
@@ -117,8 +120,9 @@ const IncidentDetails = () => {
       setStatusUpdating(true);
       const res = await updateIncidentStatus(id, newStatus);
       setIncident(res.data);
+      addToast(`Incident status updated to ${newStatus}.`, 'info');
     } catch (err) {
-      alert('Failed to update incident status: ' + err.message);
+      addToast('Failed to update incident status: ' + err.message, 'error');
     } finally {
       setStatusUpdating(false);
     }
@@ -129,8 +133,9 @@ const IncidentDetails = () => {
       setStatusUpdating(true);
       const res = await resolveIncident(id);
       setIncident(res.data);
+      addToast('Incident marked as resolved.', 'success');
     } catch (err) {
-      alert('Failed to resolve incident: ' + err.message);
+      addToast('Failed to resolve incident: ' + err.message, 'error');
     } finally {
       setStatusUpdating(false);
     }
@@ -141,8 +146,9 @@ const IncidentDetails = () => {
       setActionUpdating(prev => ({ ...prev, [actionId]: true }));
       const res = await updateIncidentActionStatus(id, actionId, newStatus);
       setIncident(res.data);
+      addToast('Remediation action status updated.', 'info');
     } catch (err) {
-      alert('Failed to update action checklist status: ' + err.message);
+      addToast('Failed to update action checklist status: ' + err.message, 'error');
     } finally {
       setActionUpdating(prev => ({ ...prev, [actionId]: false }));
     }
@@ -153,8 +159,9 @@ const IncidentDetails = () => {
       const res = await submitIncidentFeedback(incident.incidentId, type);
       setIncident(res.data);
       addLogFeedbackLocally(type);
+      addToast(`Operator feedback "${type}" saved.`, 'success');
     } catch (err) {
-      alert('Failed to save operator feedback: ' + err.message);
+      addToast('Failed to save operator feedback: ' + err.message, 'error');
     }
   };
 

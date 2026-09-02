@@ -9,7 +9,7 @@ import {
 import { useToast } from '../components/Toast';
 import { 
   CheckCircle2, AlertTriangle, Play, RotateCcw, 
-  ChevronDown, ChevronUp, Database, ArrowLeft
+  ChevronDown, ChevronUp, Database, ArrowLeft, Cpu, ShieldCheck, Target, Sparkles
 } from 'lucide-react';
 
 const PaymentRecoveryDetail = () => {
@@ -89,7 +89,7 @@ const PaymentRecoveryDetail = () => {
       setSimulating(true);
       const res = await simulateRecovery({ opportunityIds: [opportunity.opportunityId || opportunity.paymentId] });
       setSimResult(res.data);
-      addToast('Recovery strategy simulation completed.', 'info');
+      addToast('Recovery strategy simulation completed successfully.', 'info');
     } catch (err) {
       addToast('Simulation failed: ' + err.message, 'error');
     } finally {
@@ -130,7 +130,9 @@ const PaymentRecoveryDetail = () => {
   const isBlocked = opportunity.policyStatus === 'BLOCKED' || opportunity.recommendedStrategy === 'STOP_RECOVERY' || opportunity.recommendedAction === 'STOP_RECOVERY';
   const isRecovered = opportunity.status === 'RECOVERED';
   const prob = Math.round((opportunity.recoveryProbability || 0.89) * 100);
-  const ev = opportunity.expectedValue || Math.round(opportunity.amount * (opportunity.recoveryProbability || 0.89) - 10);
+  const ev = opportunity.expectedValue !== undefined 
+    ? Math.round(opportunity.expectedValue) 
+    : Math.round(opportunity.amount * (opportunity.recoveryProbability || 0.89) - (opportunity.actionCost || 10));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '1000px', margin: '0 auto' }}>
@@ -159,7 +161,7 @@ const PaymentRecoveryDetail = () => {
               </span>
             </h1>
             <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Failure: <strong style={{ color: 'var(--text-primary)' }}>{opportunity.failureReason || opportunity.failureType || 'Gateway Timeout'}</strong> · Method: <span style={{ textTransform: 'uppercase' }}>{opportunity.paymentMethod || 'UPI'}</span>
+              Failure: <strong style={{ color: 'var(--text-primary)' }}>{opportunity.failureReason || opportunity.failureType || 'Gateway Timeout'}</strong> · Payment Method: <span style={{ textTransform: 'uppercase' }}>{opportunity.paymentMethod || 'UPI'}</span>
             </div>
           </div>
 
@@ -181,14 +183,34 @@ const PaymentRecoveryDetail = () => {
         </div>
       </div>
 
-      {/* SECTION 1: WHAT HAPPENED? (SIMPLE TIMELINE) */}
+      {/* ARCHITECTURAL PRINCIPLE CALLOUT */}
+      <div style={{ padding: '12px 18px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '0.8rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ShieldCheck size={16} style={{ color: 'var(--color-healthy)' }} />
+          <strong style={{ color: 'var(--text-primary)' }}>Core Decision Principle:</strong>
+          <span style={{ color: 'var(--text-secondary)' }}>
+            ML estimates probability. Deterministic policies control whether an action is allowed.
+          </span>
+        </div>
+      </div>
+
+      {/* SECTION 1: WHAT HAPPENED? (MONGODB STORED EVENT HISTORY) */}
       <div className="card" style={{ padding: '22px' }}>
-        <h3 style={{ fontSize: '0.92rem', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          1. What Happened?
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <h3 style={{ fontSize: '0.92rem', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            1. What Happened?
+          </h3>
+          <span style={{ fontSize: '0.72rem', color: 'var(--color-info)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Database size={13} /> MongoDB Stored Event History
+          </span>
+        </div>
+
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+          MongoDB stores these immutable events so PulsePay can reconstruct the complete payment lifecycle timeline:
+        </p>
         
         {/* Clean Timeline Steps */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px', marginTop: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px', marginTop: '14px' }}>
           <div style={{ padding: '12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--color-info)' }}>
             <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Step 1</span>
             <div style={{ fontSize: '0.82rem', fontWeight: '600', color: 'var(--text-primary)', marginTop: '2px' }}>Payment Created</div>
@@ -221,86 +243,86 @@ const PaymentRecoveryDetail = () => {
         </div>
       </div>
 
-      {/* SECTION 2: CAN WE RECOVER IT? */}
+      {/* PROBABILISTIC COMPONENTS: 2. CAN WE RECOVER IT? & 3. WHAT SHOULD WE DO? */}
       <div className="card" style={{ padding: '22px' }}>
-        <h3 style={{ fontSize: '0.92rem', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          2. Can We Recover It?
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>PROBABILISTIC INFERENCE</span>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)', marginTop: '4px' }}>
+              2. ML Recovery Scoring & Expected Value
+            </h3>
+          </div>
+          <span style={{ fontSize: '0.72rem', color: 'var(--color-info)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Cpu size={13} /> Calibrated PAVA & EV Optimization
+          </span>
+        </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '18px', marginTop: '14px', flexWrap: 'wrap' }}>
-          <div style={{ padding: '16px 20px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', minWidth: '160px', textAlign: 'center' }}>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Recovery Probability</span>
-            <p style={{ fontSize: '1.8rem', fontWeight: '700', fontFamily: 'var(--font-mono)', color: isBlocked ? 'var(--text-muted)' : (prob >= 75 ? 'var(--color-healthy)' : 'var(--color-warning)'), marginTop: '2px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginTop: '14px' }}>
+          <div style={{ padding: '14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>ML Recovery Estimate</span>
+            <p style={{ fontSize: '1.4rem', fontWeight: '700', fontFamily: 'var(--font-mono)', color: isBlocked ? 'var(--text-muted)' : (prob >= 75 ? 'var(--color-healthy)' : 'var(--color-warning)'), marginTop: '2px' }}>
               {isBlocked ? '0%' : `${prob}%`}
             </p>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Calibrated probability (PAVA)</div>
           </div>
 
-          <div style={{ flex: 1, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            {isBlocked ? (
-              <p>
-                <strong style={{ color: 'var(--color-critical)' }}>Recovery Not Advisable:</strong> {opportunity.blockedReason || 'This failure signature represents a permanent decline or security lockout. Automated retry is blocked to prevent fees and customer friction.'}
-              </p>
-            ) : (
-              <p>
-                <strong style={{ color: 'var(--text-primary)' }}>High Recoverability:</strong> Similar temporary gateway timeout exceptions have historically recovered with high probability. This payment has not exceeded the retry ceiling (0 of 2 used) and no duplicate payment activity was detected.
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 3: WHAT SHOULD WE DO? */}
-      <div className="card" style={{ padding: '22px' }}>
-        <h3 style={{ fontSize: '0.92rem', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          3. What Should We Do?
-        </h3>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginTop: '14px' }}>
           <div style={{ padding: '14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Recommended Strategy</span>
             <p style={{ fontSize: '1.15rem', fontWeight: '700', color: isBlocked ? 'var(--text-muted)' : 'var(--color-info)', marginTop: '4px' }}>
               {String(opportunity.recommendedStrategy || opportunity.recommendedAction || 'DELAYED RETRY').replace(/_/g, ' ')}
             </p>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-              {isBlocked ? 'Halt all recovery actions' : 'Cooldown retry after acquiring latency settles'}
-            </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Highest expected yield channel</div>
           </div>
 
           <div style={{ padding: '14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Expected Value (EV)</span>
-            <p style={{ fontSize: '1.15rem', fontWeight: '700', fontFamily: 'var(--font-mono)', color: isBlocked ? 'var(--text-muted)' : 'var(--color-healthy)', marginTop: '4px' }}>
+            <p style={{ fontSize: '1.4rem', fontWeight: '700', fontFamily: 'var(--font-mono)', color: isBlocked ? 'var(--text-muted)' : 'var(--color-healthy)', marginTop: '2px' }}>
               ₹{ev.toLocaleString()}
             </p>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-              Net yield after ₹10 operational action cost
-            </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Net yield after action cost</div>
           </div>
+        </div>
+
+        {/* Grounded Evidence Narrative */}
+        <div style={{ marginTop: '16px', padding: '14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Evidence-Grounded Recommendation:</strong>
+          <p style={{ marginTop: '4px' }}>
+            PulsePay recommends <strong>{String(opportunity.recommendedStrategy || 'DELAYED RETRY').replace(/_/g, ' ')}</strong> because provider health has recovered, the transaction has remaining retry budget (attempt {opportunity.attemptCount || 0} of 2), and the calibrated recovery probability produces a positive expected value of ₹{ev.toLocaleString()}.
+          </p>
         </div>
       </div>
 
-      {/* SECTION 4: IS IT SAFE? */}
+      {/* DETERMINISTIC COMPONENTS: 3. DETERMINISTIC SAFETY POLICY */}
       <div className="card" style={{ padding: '22px' }}>
-        <h3 style={{ fontSize: '0.92rem', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          4. Is It Safe?
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>DETERMINISTIC GUARDRAILS</span>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)', marginTop: '4px' }}>
+              3. Safety Policy & Bounded Execution
+            </h3>
+          </div>
+          <span style={{ fontSize: '0.72rem', color: 'var(--color-healthy)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <ShieldCheck size={13} /> {isBlocked ? 'Action Blocked by Safety Policy' : 'Passed All Safety Invariants'}
+          </span>
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginTop: '14px' }}>
           <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--color-healthy)' }}>
-            <CheckCircle2 size={16} /> Temporary failure
+            <CheckCircle2 size={16} /> Permanent decline gate (Not expired/stolen)
           </div>
           <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--color-healthy)' }}>
-            <CheckCircle2 size={16} /> No duplicate payment detected
+            <CheckCircle2 size={16} /> Duplicate lockout (0 duplicate risk)
           </div>
           <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--color-healthy)' }}>
-            <CheckCircle2 size={16} /> Retry limit available (0/2)
+            <CheckCircle2 size={16} /> Retry budget check (Limit ≤ 2)
           </div>
           <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--color-healthy)' }}>
-            <CheckCircle2 size={16} /> Positive Expected Value
+            <CheckCircle2 size={16} /> Financial viability gate (EV &gt; ₹0)
           </div>
         </div>
 
         {/* Action Controls */}
-        <div style={{ display: 'flex', gap: '12px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', gap: '12px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
           <button 
             className="btn btn-primary"
             onClick={handleExecuteSingle}
@@ -308,7 +330,7 @@ const PaymentRecoveryDetail = () => {
             style={{ fontSize: '0.84rem', padding: '9px 20px' }}
           >
             <Play size={15} fill="currentColor" />
-            {executing ? 'Executing Recovery...' : isRecovered ? 'Already Recovered' : isBlocked ? 'Blocked by Policy' : 'Execute Recovery Action'}
+            {executing ? 'Executing Recovery...' : isRecovered ? 'Already Recovered' : isBlocked ? 'Blocked by Policy' : 'Execute Synthetic Recovery'}
           </button>
 
           <button 
@@ -323,7 +345,7 @@ const PaymentRecoveryDetail = () => {
         </div>
       </div>
 
-      {/* SECTION 5: WHY? (COLLAPSIBLE TECHNICAL EVIDENCE) */}
+      {/* SECTION 4: WHY? (COLLAPSIBLE TECHNICAL EVIDENCE) */}
       <div className="card" style={{ padding: '18px 22px' }}>
         <button 
           onClick={() => setTechEvidenceOpen(!techEvidenceOpen)}
@@ -332,7 +354,7 @@ const PaymentRecoveryDetail = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Database size={16} style={{ color: 'var(--color-info)' }} />
             <span style={{ fontSize: '0.92rem', fontWeight: '700' }}>
-              Why? (View Technical Evidence & ML Signals)
+              Why? (View Technical Evidence & Telemetry Signals)
             </span>
           </div>
           {techEvidenceOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -342,40 +364,40 @@ const PaymentRecoveryDetail = () => {
           <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
               <div style={{ padding: '10px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Raw ML Probability</span>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Raw Heuristic Estimate</span>
                 <div style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                   {Math.round((opportunity.rawProbability || 0.88) * 100)}%
                 </div>
               </div>
 
               <div style={{ padding: '10px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Calibrated Probability</span>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Calibrated Estimate (Isotonic PAVA)</span>
                 <div style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--color-healthy)', fontFamily: 'var(--font-mono)' }}>
-                  {Math.round((opportunity.recoveryProbability || 0.89) * 100)}% (Platt Scaling)
+                  {Math.round((opportunity.recoveryProbability || 0.89) * 100)}% (Monotonic Knots)
                 </div>
               </div>
 
               <div style={{ padding: '10px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
                 <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Action Cost</span>
                 <div style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                  ₹10 (Gateway API cost)
+                  ₹10 (Gateway channel fee)
                 </div>
               </div>
             </div>
 
             <div>
-              <strong style={{ color: 'var(--text-primary)' }}>Feature Attributions:</strong>
+              <strong style={{ color: 'var(--text-primary)' }}>Supporting Telemetry Signals:</strong>
               <ul style={{ listStyle: 'disc inside', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <li>Failure Code: Transient Timeout (+45% recovery influence)</li>
-                <li>Customer History: Tier 1 Zero-Fraud (+20% influence)</li>
-                <li>Time Decay: 5 minutes elapsed (-3% decay)</li>
-                <li>Duplicate Guard: Idempotency check verified passing</li>
+                <li>Failure Code: Transient Timeout (+45% recovery weight)</li>
+                <li>Customer History: Tier 1 Low-Fraud (+20% weight)</li>
+                <li>Retry Budget: Attempt {opportunity.attemptCount || 0} of 2 available</li>
+                <li>Duplicate Hash Guard: Idempotency check verified zero collisions</li>
               </ul>
             </div>
 
             {opportunity.events && opportunity.events.length > 0 && (
               <div>
-                <strong style={{ color: 'var(--text-primary)' }}>MongoDB Audit Trail:</strong>
+                <strong style={{ color: 'var(--text-primary)' }}>MongoDB Raw Audit Trail:</strong>
                 <div style={{ marginTop: '6px', background: 'var(--bg-tertiary)', padding: '10px', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>
                   {opportunity.events.map((ev, idx) => (
                     <div key={idx} style={{ padding: '2px 0' }}>

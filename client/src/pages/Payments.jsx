@@ -37,14 +37,18 @@ const Payments = () => {
   });
 
   return (
-    <div>
-      <div className="flex-between" style={{ marginBottom: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>Transaction Registry</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Comprehensive transaction status database and event logs</p>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+            Payment Ledger
+          </h1>
+          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+            Comprehensive transaction status database and payment event logs.
+          </p>
         </div>
         <button className="btn btn-secondary" onClick={fetchPayments}>
-          <RefreshCw size={16} /> Refresh Table
+          <RefreshCw size={14} /> Refresh Ledger
         </button>
       </div>
 

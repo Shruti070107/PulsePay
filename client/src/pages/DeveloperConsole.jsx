@@ -475,20 +475,23 @@ const DeveloperConsole = () => {
   };
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex-between" style={{ marginBottom: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>Simulation & Transaction Data Lab</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Import, validate, replay and analyze realistic payment transaction datasets.</p>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+            Scenario Lab
+          </h1>
+          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+            Synthetic traffic generator, transaction data lab, and failure scenario replay studio.
+          </p>
         </div>
         <button 
           className="btn btn-success" 
           onClick={handleDemo} 
           disabled={loading}
-          style={{ background: 'var(--color-healthy)', display: 'flex', alignItems: 'center', gap: '8px' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
         >
-          <Sparkles size={16} /> Activate E2E Demo Mode
+          <Sparkles size={14} /> Activate E2E Demo Mode
         </button>
       </div>
 
