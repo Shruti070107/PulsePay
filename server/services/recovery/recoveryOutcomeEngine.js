@@ -69,6 +69,7 @@ const calculateRecoveryOutcomes = async (campaignId = null) => {
     expectedVsActual,
     calibrationError,
     totalOpportunitiesCount: opportunities.length,
+    eligibleOpportunityCount: eligibleOpportunities.length,
     recoveredCount: recoveredActions.length,
     failedCount: failedActions.length,
     blockedCount: blockedActions.length,

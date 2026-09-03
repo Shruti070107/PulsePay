@@ -744,6 +744,21 @@ const generateHighDeclineRate = (base = generateBaseTransaction(), options = {})
   return { payment, order, events, webhooks: [] };
 };
 
+const generatePermanentDecline = (base = generateBaseTransaction(), options = {}) => {
+  const paymentId = generatePaymentId();
+  const orderId = generateOrderId();
+  const now = options.now || new Date();
+  const payment = { paymentId, orderId, amount: base.amount, currency: base.currency, customerId: base.customerId, merchantId: base.merchantId, paymentMethod: base.paymentMethod, status: 'failed', errorMessage: 'CARD_EXPIRED' };
+  const order = { orderId, paymentId, amount: base.amount, status: 'unpaid' };
+  const t0 = new Date(now.getTime());
+  const t1 = new Date(now.getTime() + 800);
+  const events = [
+    createEvent(payment, 'payment.created', 'created', 'api', t0),
+    createEvent(payment, 'payment.failed', 'failed', 'gateway', t1, t1, { errorCode: 'CARD_EXPIRED', message: 'Payment instrument expired' }),
+  ];
+  return { payment, order, events, webhooks: [] };
+};
+
 /**
  * Scenario 15: Partial Capture Anomaly
  */
@@ -1293,6 +1308,7 @@ module.exports = {
   generateMerchantTimeout,
   generateProviderDegradation,
   generateHighDeclineRate,
+  generatePermanentDecline,
   generatePartialCapture,
   generateAmountMismatch,
   generateOrderStateMismatch,

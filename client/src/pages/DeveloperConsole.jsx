@@ -500,7 +500,7 @@ const DeveloperConsole = () => {
       </div>
 
       {/* AI REVENUE RECOVERY DEMO & BENCHMARK PANEL */}
-      <div className="card" style={{ marginBottom: '24px', padding: '18px', border: '1px solid rgba(16, 185, 129, 0.4)', background: 'linear-gradient(180deg, rgba(16,185,129,0.06) 0%, rgba(18,24,36,0.9) 100%)' }}>
+      <div className="card" style={{ marginBottom: '24px', padding: '18px', border: '1px solid var(--color-success-border)', background: 'var(--color-success-bg)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

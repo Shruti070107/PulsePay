@@ -12,6 +12,8 @@ router.get('/opportunities/:id', recoveryController.getOpportunityById);
 // Simulation & Execution
 router.post('/simulate', recoveryController.simulateRecovery);
 router.post('/execute', recoveryController.executeRecovery);
+router.post('/compare-strategies', recoveryController.compareStrategies);
+
 
 // Campaigns
 router.get('/campaigns', recoveryController.getCampaigns);
@@ -27,6 +29,7 @@ router.post('/evaluate', recoveryController.evaluateRecovery);
 
 // 1-Click Interactive Demo
 router.post('/demo', recoveryController.runDemo);
+router.post('/mission', recoveryController.runRecoveryMission);
 
 // ==========================================
 // RECOVERY BENCHMARK & OUTCOME LAB APIS

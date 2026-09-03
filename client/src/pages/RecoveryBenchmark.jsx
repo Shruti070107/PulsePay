@@ -10,6 +10,9 @@ import {
   Scale, FileText, ChevronDown, ChevronUp, AlertCircle, Info, ShieldCheck
 } from 'lucide-react';
 
+const fmt = (value) => value == null ? 'No data' : `₹${Number(value).toLocaleString('en-IN')}`;
+const pctOrDash = (value) => value == null ? 'No data' : `${Number(value).toFixed(1)}%`;
+
 const RecoveryBenchmark = () => {
   const { addToast } = useToast();
   const [benchmark, setBenchmark] = useState(null);
@@ -105,23 +108,17 @@ const RecoveryBenchmark = () => {
   }
 
   // Exact metrics derived from backend source of truth
-  const pulseNet = benchmark?.netRecoveredRevenue || 14064879;
-  const improvementPct = benchmark?.baselineComparison?.liftPercentage || 21.0;
-  const blindNet = benchmark?.baselineMetrics?.naiveRetryNetRecovered 
-    ? (benchmark.baselineMetrics.naiveRetryNetRecovered > pulseNet ? Math.round(pulseNet / 1.21) : benchmark.baselineMetrics.naiveRetryNetRecovered)
-    : (benchmark?.baselineComparison?.blindRetryNetRecovery || 11619196);
+  const pulseNet = benchmark?.netRecoveredRevenue;
+  const improvementPct = benchmark?.baselineComparison?.netImprovementPercentage;
+  const blindNet = benchmark?.baselineComparison?.blindRetryNetRecovery;
 
-  const rawCalError = benchmark?.calibrationComparison?.calibrationErrorBefore ?? benchmark?.rawMetrics?.calibrationError ?? 33.7;
-  const calCalError = benchmark?.calibrationComparison?.calibrationErrorAfter ?? benchmark?.calibrationError ?? 14.8;
-  const rawEce = benchmark?.calibrationComparison?.eceBefore ?? benchmark?.rawMetrics?.ece ?? 0.337;
-  const calEce = benchmark?.calibrationComparison?.eceAfter ?? benchmark?.ece ?? 0.148;
-  const rawBrier = benchmark?.calibrationComparison?.brierScoreBefore ?? benchmark?.rawMetrics?.brierScore ?? 0.2515;
-  const calBrier = benchmark?.calibrationComparison?.brierScoreAfter ?? benchmark?.brierScore ?? 0.1483;
+  const rawCalError = benchmark?.calibrationComparison?.calibrationErrorBefore;
+  const calCalError = benchmark?.calibrationComparison?.calibrationErrorAfter;
 
-  const precision = benchmark?.recoveryPrecision ?? 96.0;
-  const recall = benchmark?.recoveryRecall ?? 100.0;
-  const duplicateViolations = benchmark?.calibrationComparison?.duplicateChargesAfter ?? 0;
-  const unsafePrevented = benchmark?.unsafeActionsPrevented ?? benchmark?.calibrationComparison?.unsafeActionsAfter ?? 317;
+  const precision = benchmark?.recoveryPrecision;
+  const recall = benchmark?.recoveryRecall;
+  const duplicateViolations = benchmark?.calibrationComparison?.duplicateChargesAfter;
+  const unsafePrevented = benchmark?.unsafeActionsPrevented;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -197,7 +194,7 @@ const RecoveryBenchmark = () => {
               UNSEEN EVALUATION BENCHMARK (3,000 TRANSACTIONS)
             </div>
             <h2 style={{ fontSize: '1.2rem', fontWeight: '600', marginTop: '4px', color: 'var(--text-primary)' }}>
-              PulsePay: ₹1.41 Cr vs Blind Retry: ₹1.16 Cr (+₹24.45 Lakh / +21.0% Net Lift)
+              PulsePay: {fmt(pulseNet)} vs Blind Retry: {fmt(blindNet)} (+{fmt(pulseNet != null && blindNet != null ? pulseNet - blindNet : null)} / +{pctOrDash(improvementPct)} Net Lift)
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
               Evaluated on 3,000 strictly isolated evaluation transactions without peeking or data leakage.
@@ -213,9 +210,9 @@ const RecoveryBenchmark = () => {
               PulsePay Net Recovery
             </span>
             <p style={{ fontSize: '1.25rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', marginTop: '2px' }}>
-              ₹1.41 Cr
+              {fmt(pulseNet)}
             </p>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>0 duplicate charges incurred</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{duplicateViolations == null ? 'No data' : `${duplicateViolations} duplicate charges incurred`}</div>
           </div>
 
           <div style={{ padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-warning)' }}>
@@ -223,9 +220,9 @@ const RecoveryBenchmark = () => {
               Blind Retry Net Recovery
             </span>
             <p style={{ fontSize: '1.25rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              ₹1.16 Cr
+              {fmt(blindNet)}
             </p>
-            <div style={{ fontSize: '0.68rem', color: 'var(--color-critical)' }}>583 duplicate charges incurred</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--color-critical)' }}>{benchmark?.baselineComparison?.blindRetryDuplicateCharges == null ? 'No data' : `${benchmark.baselineComparison.blindRetryDuplicateCharges} duplicate charges incurred`}</div>
           </div>
 
           <div style={{ padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-info)' }}>
@@ -233,9 +230,9 @@ const RecoveryBenchmark = () => {
               Precision / Recall
             </span>
             <p style={{ fontSize: '1.25rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: 'var(--color-info)', marginTop: '2px' }}>
-              96.0% / 100.0%
+              {pctOrDash(precision)} / {pctOrDash(recall)}
             </p>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>317 unsafe actions prevented</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{unsafePrevented == null ? 'No data' : `${unsafePrevented} unsafe actions prevented`}</div>
           </div>
 
           <div style={{ padding: '12px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', borderLeft: '2px solid var(--color-healthy)' }}>
@@ -243,9 +240,9 @@ const RecoveryBenchmark = () => {
               Calibration ECE (PAVA)
             </span>
             <p style={{ fontSize: '1.25rem', fontWeight: '600', fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', marginTop: '2px' }}>
-              33.7% → 14.8%
+              {pctOrDash(rawCalError)} → {pctOrDash(calCalError)}
             </p>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Brier: 0.2515 → 0.1483</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Brier: {benchmark?.calibrationComparison?.brierScoreBefore == null ? 'No data' : benchmark.calibrationComparison.brierScoreBefore} → {benchmark?.calibrationComparison?.brierScoreAfter == null ? 'No data' : benchmark.calibrationComparison.brierScoreAfter}</div>
           </div>
 
         </div>
@@ -279,15 +276,15 @@ const RecoveryBenchmark = () => {
                   <strong style={{ color: 'var(--color-healthy)' }}>PulsePay (Calibrated EV + Safety)</strong>
                 </td>
                 <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-healthy)', fontWeight: '700' }}>
-                  ₹1.41 Cr (₹1,40,64,879)
+                  {fmt(pulseNet)}
                 </td>
-                <td style={{ fontFamily: 'var(--font-mono)' }}>96.0%</td>
-                <td style={{ fontFamily: 'var(--font-mono)' }}>100.0%</td>
+                <td style={{ fontFamily: 'var(--font-mono)' }}>{pctOrDash(precision)}</td>
+                <td style={{ fontFamily: 'var(--font-mono)' }}>{pctOrDash(recall)}</td>
                 <td>
-                  <span className="badge badge-success">0 duplicate charges</span>
+                  <span className="badge badge-success">{duplicateViolations == null ? 'No data' : `${duplicateViolations} duplicate charges`}</span>
                 </td>
                 <td>
-                  <span className="badge badge-info">317 blocked</span>
+                  <span className="badge badge-info">{unsafePrevented == null ? 'No data' : `${unsafePrevented} blocked`}</span>
                 </td>
               </tr>
               <tr>
@@ -295,15 +292,15 @@ const RecoveryBenchmark = () => {
                   <strong style={{ color: 'var(--text-secondary)' }}>Blind Retry (Naive Baseline)</strong>
                 </td>
                 <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                  ₹1.16 Cr (₹1,16,19,196)
+                  {fmt(blindNet)}
                 </td>
                 <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>—</td>
                 <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>—</td>
                 <td>
-                  <span className="badge badge-danger">583 duplicate charges</span>
+                  <span className="badge badge-danger">{benchmark?.baselineComparison?.blindRetryDuplicateCharges == null ? 'No data' : `${benchmark.baselineComparison.blindRetryDuplicateCharges} duplicate charges`}</span>
                 </td>
                 <td>
-                  <span className="badge badge-danger">0 blocked (fees wasted)</span>
+                  <span className="badge badge-danger">Not reported for baseline</span>
                 </td>
               </tr>
             </tbody>
@@ -311,7 +308,7 @@ const RecoveryBenchmark = () => {
         </div>
 
         <div style={{ marginTop: '14px', padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-          <strong style={{ color: 'var(--text-primary)' }}>Probability Calibration (Isotonic Regression / PAVA):</strong> Calibration makes the predicted recovery probabilities better match observed recovery frequencies (ECE reduced from 33.7% to 14.8%, Brier score reduced from 0.2515 to 0.1483).
+          <strong style={{ color: 'var(--text-primary)' }}>Probability Calibration (Isotonic Regression / PAVA):</strong> Calibration makes the predicted recovery probabilities better match observed recovery frequencies (ECE reduced from {pctOrDash(rawCalError)} to {pctOrDash(calCalError)}).
         </div>
       </div>
 

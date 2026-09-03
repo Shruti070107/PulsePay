@@ -13,6 +13,8 @@ const { calculateRecoveryOutcomes } = require('../services/recovery/recoveryOutc
 const { runRecoveryAgentAnalysis } = require('../services/recovery/recoveryAgent');
 const { runRecoveryEvaluation } = require('../services/recovery/recoveryEvaluationEngine');
 const { runFullRevenueRecoveryDemo } = require('../services/recovery/recoveryDemoService');
+const { determineRecoveryStrategy } = require('../services/recovery/recoveryStrategyEngine');
+const { evaluateRecoveryPolicies } = require('../services/recovery/recoveryPolicyEngine');
 
 const scanOpportunities = async (req, res, next) => {
   try {
@@ -171,6 +173,16 @@ const getOpportunityById = async (req, res, next) => {
       Order.findOne({ paymentId: opportunity.paymentId }).lean(),
     ]);
 
+    const strategyComparison = determineRecoveryStrategy({
+      amount: opportunity.amount,
+      recoveryProbability: opportunity.recoveryProbability,
+      failureReason: opportunity.failureReason,
+      isCapturedOrderUnpaid: Boolean(order && order.status !== 'paid'),
+      hasWebhookFailure: webhooks.length === 0,
+      paymentMethod: opportunity.paymentMethod,
+      retryCount: opportunity.retryCount || 0,
+    });
+
     // Build visual recovery explanation graph nodes & edges
     const explanationGraph = {
       nodes: [
@@ -199,12 +211,56 @@ const getOpportunityById = async (req, res, next) => {
         events,
         webhooks,
         actions,
+        decisionExplanation: opportunity.explanations || {},
+        decisionEvidence: opportunity.reasons || [],
+        policyChecks: opportunity.policyChecks || [],
+        strategyComparison: strategyComparison.allEvaluations || [],
+        selectedStrategy: strategyComparison.recommendedAction,
         explanationGraph,
       },
     });
   } catch (err) {
     next(err);
   }
+};
+
+const runRecoveryMission = async (req, res, next) => {
+  try {
+    const requestedLimit = Number(req.body?.limit || 50);
+    const limit = Math.min(Math.max(Number.isFinite(requestedLimit) ? requestedLimit : 50, 1), 100);
+    const scan = await scanRevenueAtRisk({ lookbackHours: req.body?.lookbackHours || 72, limit });
+    const scannedIds = (scan.opportunities || []).slice(0, limit).map(item => item.opportunityId);
+    const simulation = scannedIds.length > 0
+      ? await simulateRecoveryBatch({ opportunityIds: scannedIds, strategyOverride: 'OPTIMIZED' })
+      : {
+        mode: 'SIMULATION', strategyApplied: 'OPTIMIZED_EXPECTED_VALUE', transactionsTargeted: 0,
+        transactionsExpectedRecovered: 0, amountAtRisk: 0, eligibleRevenue: 0,
+        expectedRecoveredAmount: 0, expectedUnrecoveredAmount: 0, blockedAmount: 0,
+        policyBlockedCount: 0, projectedRecoveryRate: 0, actionsBreakdown: {}, simulatedOpportunities: [],
+      };
+    const executableIds = simulation.simulatedOpportunities
+      .filter(item => item.simulatedOutcome !== 'BLOCKED')
+      .slice(0, limit)
+      .map(item => item.opportunityId);
+    const execution = executableIds.length > 0
+      ? await executeRecoveryBatch({ opportunityIds: executableIds, batchId: `MISSION-${Date.now()}` })
+      : { totalExecuted: 0, recoveredCount: 0, blockedCount: simulation.policyBlockedCount, actualRecoveredAmount: 0, blockedAmount: simulation.blockedAmount, actions: [] };
+    return res.status(200).json({ success: true, data: {
+      status: 'COMPLETED',
+      analyzed: simulation.transactionsTargeted,
+      eligible: simulation.transactionsTargeted - simulation.policyBlockedCount,
+      blocked: simulation.policyBlockedCount + (execution.blockedCount || 0),
+      expectedRecovery: simulation.expectedRecoveredAmount,
+      revenueAtRisk: simulation.amountAtRisk,
+      simulation,
+      execution,
+      actionsAttempted: execution.totalExecuted || 0,
+      actionsSuccessful: execution.recoveredCount || 0,
+      actionsBlocked: execution.blockedCount || simulation.policyBlockedCount,
+      actualRecovery: execution.actualRecoveredAmount || 0,
+      unsafeActionsPrevented: execution.blockedCount || simulation.policyBlockedCount,
+    } });
+  } catch (err) { return next(err); }
 };
 
 const simulateRecovery = async (req, res, next) => {
@@ -404,6 +460,129 @@ const evaluateRecovery = async (req, res, next) => {
   }
 };
 
+/**
+ * Compare all recovery strategies for a given opportunity.
+ * Reuses determineRecoveryStrategy (EV engine) and evaluateRecoveryPolicies (safety engine).
+ * Frontend renders the response — no calculations happen there.
+ */
+const compareStrategies = async (req, res, next) => {
+  try {
+    const {
+      opportunityId,
+      paymentId,
+      amount,
+      recoveryProbability,
+      failureReason,
+      isCapturedOrderUnpaid,
+      hasWebhookFailure,
+      paymentMethod,
+      retryCount,
+      expectedValue,
+      isDuplicate,
+      riskScore,
+    } = req.body;
+
+    // If opportunityId or paymentId provided, try to load from DB
+    let ctx = {};
+    if (opportunityId || paymentId) {
+      const id = opportunityId || paymentId;
+      let opp = await RecoveryOpportunity.findOne({ $or: [{ opportunityId: id }, { paymentId: id }] }).lean();
+      if (!opp) {
+        const bench = await RecoveryBenchmarkResult.findOne({ paymentId: id }).lean();
+        if (bench) {
+          opp = {
+            amount: bench.amount,
+            recoveryProbability: bench.calibratedRecoveryProbability || bench.recoveryProbability,
+            failureReason: bench.failureType,
+            isCapturedOrderUnpaid: false,
+            hasWebhookFailure: false,
+            paymentMethod: bench.paymentMethod,
+            retryCount: bench.attemptCount || 0,
+            expectedValue: bench.expectedValue,
+            isDuplicate: false,
+            riskScore: 0,
+          };
+        }
+      }
+      if (!opp) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Recovery opportunity record not found' },
+        });
+      }
+      if (opp) ctx = opp;
+    }
+
+    // Merge with inline body overrides
+    const resolvedAmount             = amount             ?? ctx.amount             ?? 1000;
+    const resolvedProb               = recoveryProbability ?? ctx.recoveryProbability ?? 0.7;
+    const resolvedFailure            = failureReason       ?? ctx.failureReason      ?? 'UNKNOWN_FAILURE';
+    const resolvedCaptured           = isCapturedOrderUnpaid ?? ctx.isCapturedOrderUnpaid ?? false;
+    const resolvedWebhook            = hasWebhookFailure  ?? ctx.hasWebhookFailure   ?? false;
+    const resolvedMethod             = paymentMethod      ?? ctx.paymentMethod       ?? 'upi';
+    const resolvedRetry              = retryCount         ?? ctx.retryCount          ?? 0;
+    const resolvedEV                 = expectedValue      ?? ctx.expectedValue       ?? 0;
+    const resolvedDuplicate          = isDuplicate        ?? ctx.isDuplicate         ?? false;
+    const resolvedRisk               = riskScore          ?? ctx.riskScore           ?? 0;
+
+    // Run EV strategy engine (existing service — no new formula)
+    const strategyResult = determineRecoveryStrategy({
+      amount: resolvedAmount,
+      recoveryProbability: resolvedProb,
+      failureReason: resolvedFailure,
+      isCapturedOrderUnpaid: resolvedCaptured,
+      hasWebhookFailure: resolvedWebhook,
+      paymentMethod: resolvedMethod,
+      retryCount: resolvedRetry,
+    });
+
+    const selectedAction = strategyResult.recommendedAction;
+
+    // Run safety policy check for each strategy
+    const strategiesWithPolicy = strategyResult.allEvaluations.map(strategy => {
+      const policyResult = evaluateRecoveryPolicies({
+        paymentId: opportunityId || paymentId,
+        amount: resolvedAmount,
+        failureReason: resolvedFailure,
+        retryCount: resolvedRetry,
+        timeSinceFailureMinutes: ctx.timeSinceFailureMinutes || 30,
+        expectedValue: strategy.expectedValue,
+        recommendedAction: strategy.action,
+        isDuplicate: resolvedDuplicate,
+        riskScore: resolvedRisk,
+      });
+
+      return {
+        action: strategy.action,
+        name: strategy.name,
+        successProbability: strategy.successProbability,
+        expectedRecoveredAmount: strategy.expectedRecoveredAmount,
+        cost: strategy.cost,
+        expectedValue: strategy.expectedValue,
+        risk: strategy.risk,
+        reason: strategy.reason,
+        selected: strategy.action === selectedAction,
+        safetyStatus: policyResult.allowed ? 'PERMITTED' : 'BLOCKED',
+        blockedReason: policyResult.allowed ? null : policyResult.reason,
+        policyChecks: policyResult.policyChecks,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        selectedStrategy: selectedAction,
+        selectedStrategyName: strategyResult.recommendedActionName,
+        whySelected: strategyResult.whyThisAction,
+        whyNotOther: strategyResult.whyNotAnother,
+        strategies: strategiesWithPolicy,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   scanOpportunities,
   getOpportunities,
@@ -417,4 +596,6 @@ module.exports = {
   analyzeWithAgent,
   runDemo,
   evaluateRecovery,
+  runRecoveryMission,
+  compareStrategies,
 };

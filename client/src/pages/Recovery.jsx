@@ -1,15 +1,46 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  getRecoveryOpportunities, 
-  simulateRecovery, 
-  executeRecovery, 
-  scanRecoveryOpportunities 
+import {
+  getRecoveryOpportunities,
+  scanRecoveryOpportunities
 } from '../api';
 import { useToast } from '../components/Toast';
-import { 
-  RotateCcw, RefreshCw, Search, Play, Compass, ArrowUpDown
-} from 'lucide-react';
+import { RotateCcw, RefreshCw, Search, Compass, ChevronUp, ChevronDown } from 'lucide-react';
+
+const fmt = (n) => n != null ? `₹${Number(n).toLocaleString('en-IN')}` : '—';
+const pct = (n) => n != null ? `${Number(n).toFixed(1)}%` : '—';
+
+const statusBadge = (status) => {
+  if (!status) return <span className="badge badge-neutral">—</span>;
+  const s = String(status).toUpperCase();
+  if (s === 'RECOVERED')    return <span className="badge badge-success">Recovered</span>;
+  if (s === 'PENDING')      return <span className="badge badge-info">Pending</span>;
+  if (s === 'BLOCKED')      return <span className="badge badge-danger">Blocked</span>;
+  if (s === 'FAILED')       return <span className="badge badge-danger">Failed</span>;
+  if (s === 'IN_PROGRESS')  return <span className="badge badge-warning">In Progress</span>;
+  return <span className="badge badge-neutral">{status}</span>;
+};
+
+const policyBadge = (status) => {
+  if (!status) return null;
+  const s = String(status).toUpperCase();
+  if (s === 'ELIGIBLE') return <span className="badge badge-success">Eligible</span>;
+  if (s === 'BLOCKED')  return <span className="badge badge-danger">Blocked</span>;
+  return <span className="badge badge-neutral">{status}</span>;
+};
+
+const TABS = [
+  { key: 'ALL',          label: 'All' },
+  { key: 'ELIGIBLE',     label: 'Eligible' },
+  { key: 'PENDING',      label: 'Pending' },
+  { key: 'RECOVERED',    label: 'Recovered' },
+  { key: 'BLOCKED',      label: 'Blocked' },
+];
+
+const SortIcon = ({ col, sort }) => {
+  if (sort.col !== col) return <ChevronUp size={12} style={{ opacity: 0.25 }} />;
+  return sort.dir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />;
+};
 
 const Recovery = () => {
   const navigate = useNavigate();
@@ -17,32 +48,25 @@ const Recovery = () => {
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [executing, setExecuting] = useState(false);
-  
-  // Search, Filter, Sort
   const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState('ALL'); // ALL, HIGH_RECOVERY, WEBHOOK_SYNC, BLOCKED, RECOVERED
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [activeTab, setActiveTab] = useState('ALL');
+  const [sort, setSort] = useState({ col: 'expectedValue', dir: 'desc' });
 
   const fetchOpps = async (isManual = false) => {
     try {
       if (isManual) setRefreshing(true);
       else setLoading(true);
-
-      const res = await getRecoveryOpportunities({ limit: 100 });
+      const res = await getRecoveryOpportunities({ limit: 150 });
       setOpportunities(res.data || []);
     } catch (err) {
-      console.error('Failed to load recovery opportunities', err);
-      addToast('Failed to load recovery queue items.', 'error');
+      addToast('Unable to load recovery opportunities.', 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    fetchOpps();
-  }, []);
+  useEffect(() => { fetchOpps(); }, []);
 
   const handleScan = async () => {
     try {
@@ -51,239 +75,193 @@ const Recovery = () => {
       await fetchOpps(true);
       addToast('Revenue risk scan completed.', 'success');
     } catch (err) {
-      addToast('Failed to scan revenue at risk: ' + err.message, 'error');
+      addToast('Unable to scan revenue at risk: ' + err.message, 'error');
     } finally {
       setRefreshing(false);
     }
   };
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedIds(filteredOpps.map(o => o.opportunityId || o.paymentId));
-    } else {
-      setSelectedIds([]);
-    }
-  };
-
-  const handleSelectOne = (id) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+  const cycleSort = (col) => {
+    setSort(prev => prev.col === col
+      ? { col, dir: prev.dir === 'desc' ? 'asc' : 'desc' }
+      : { col, dir: 'desc' }
     );
   };
 
-  const handleExecuteSelected = async () => {
-    if (selectedIds.length === 0) return;
-    try {
-      setExecuting(true);
-      const res = await executeRecovery({ opportunityIds: selectedIds });
-      const count = res.data?.totalExecuted || selectedIds.length;
-      addToast(`Executed recovery for ${count} payment(s).`, 'success');
-      setSelectedIds([]);
-      await fetchOpps(true);
-    } catch (err) {
-      addToast('Execution failed: ' + err.message, 'error');
-    } finally {
-      setExecuting(false);
-    }
-  };
-
-  // Filter & Sort Pipeline (Sorted by Expected Value descending by default)
-  const filteredOpps = useMemo(() => {
+  const filtered = useMemo(() => {
+    const term = search.toLowerCase();
     return opportunities
       .filter(opp => {
-        // Search
-        const term = search.toLowerCase();
-        const matchesSearch = 
-          !search ||
+        if (activeTab !== 'ALL') {
+          if (activeTab === 'ELIGIBLE' && opp.policyStatus?.toUpperCase() !== 'ELIGIBLE') return false;
+          if (activeTab === 'BLOCKED' && opp.policyStatus?.toUpperCase() !== 'BLOCKED') return false;
+          if (activeTab === 'RECOVERED' && opp.status?.toUpperCase() !== 'RECOVERED') return false;
+          if (activeTab === 'PENDING' && opp.status?.toUpperCase() !== 'PENDING') return false;
+        }
+        if (!term) return true;
+        return (
           opp.paymentId?.toLowerCase().includes(term) ||
           opp.opportunityId?.toLowerCase().includes(term) ||
           opp.failureReason?.toLowerCase().includes(term) ||
-          opp.recommendedStrategy?.toLowerCase().includes(term);
-
-        if (!matchesSearch) return false;
-
-        // Tab Filter
-        if (activeTab === 'HIGH_RECOVERY') {
-          return (opp.expectedValue || (opp.amount * 0.8)) >= 2000 && opp.policyStatus === 'ELIGIBLE';
-        }
-        if (activeTab === 'WEBHOOK_SYNC') {
-          return opp.recommendedStrategy === 'RECONCILE_WEBHOOK' || opp.recommendedAction === 'RECONCILE_WEBHOOK';
-        }
-        if (activeTab === 'BLOCKED') {
-          return opp.policyStatus === 'BLOCKED' || opp.recommendedStrategy === 'STOP_RECOVERY';
-        }
-        if (activeTab === 'RECOVERED') {
-          return opp.status === 'RECOVERED';
-        }
-
-        return true;
+          opp.failureType?.toLowerCase().includes(term) ||
+          opp.recommendedAction?.toLowerCase().includes(term) ||
+          opp.status?.toLowerCase().includes(term)
+        );
       })
       .sort((a, b) => {
-        const evA = a.expectedValue || (a.amount * (a.recoveryProbability || 0.8) - 10);
-        const evB = b.expectedValue || (b.amount * (b.recoveryProbability || 0.8) - 10);
-        return evB - evA;
+        const col = sort.col;
+        const av = a[col] ?? 0;
+        const bv = b[col] ?? 0;
+        if (typeof av === 'string') return sort.dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+        return sort.dir === 'asc' ? av - bv : bv - av;
       });
-  }, [opportunities, search, activeTab]);
+  }, [opportunities, activeTab, search, sort]);
+
+  const counts = useMemo(() => ({
+    ALL:       opportunities.length,
+    ELIGIBLE:  opportunities.filter(o => o.policyStatus?.toUpperCase() === 'ELIGIBLE').length,
+    PENDING:   opportunities.filter(o => o.status?.toUpperCase() === 'PENDING').length,
+    RECOVERED: opportunities.filter(o => o.status?.toUpperCase() === 'RECOVERED').length,
+    BLOCKED:   opportunities.filter(o => o.policyStatus?.toUpperCase() === 'BLOCKED').length,
+  }), [opportunities]);
+
+  const ThSort = ({ col, label }) => (
+    <th style={{ cursor: 'pointer', userSelect: 'none' }} onClick={() => cycleSort(col)}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        {label} <SortIcon col={col} sort={sort} />
+      </span>
+    </th>
+  );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      
-      {/* 1. HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', paddingBottom: '14px', borderBottom: '1px solid var(--border-color)' }}>
+    <div className="page-stack">
+
+      {/* ── Header ─────────────────────────────────────────── */}
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: '600', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-            Recovery Queue
-          </h1>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-            Show me payments worth recovering, prioritized by Expected Value (EV).
-          </p>
+          <h1>Recovery Queue</h1>
+          <p>Ranked by expected recovery value. Investigate any payment to see the full decision record.</p>
+        </div>
+        <div className="page-header-actions">
+          <button className="btn btn-secondary" onClick={() => fetchOpps(true)} disabled={refreshing} id="queue-refresh">
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
+          <button className="btn btn-secondary" onClick={handleScan} disabled={refreshing} id="queue-scan">
+            <RotateCcw size={14} />
+            Scan Revenue Risk
+          </button>
         </div>
       </div>
 
-      {/* 2. OPERATIONAL FILTERS & SEARCH */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        
-        {/* Filter Tabs */}
-        <div style={{ display: 'flex', gap: '6px', background: 'var(--bg-secondary)', padding: '4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
-          {[
-            { key: 'ALL', label: 'All Opportunities' },
-            { key: 'HIGH_RECOVERY', label: 'High EV (≥ ₹2k)' },
-            { key: 'WEBHOOK_SYNC', label: 'Webhook Sync' },
-            { key: 'BLOCKED', label: 'Blocked by Policy' },
-            { key: 'RECOVERED', label: 'Recovered' },
-          ].map(tab => (
+      {/* ── Filters ─────────────────────────────────────────── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: '1 1 260px', maxWidth: 360 }}>
+          <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by payment ID, failure, action…"
+            style={{ paddingLeft: 32 }}
+            id="queue-search"
+          />
+        </div>
+        <div className="tab-group">
+          {TABS.map(({ key, label }) => (
             <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              style={{
-                background: activeTab === tab.key ? 'var(--color-info)' : 'transparent',
-                color: activeTab === tab.key ? '#ffffff' : 'var(--text-secondary)',
-                border: 'none',
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '0.78rem',
-                fontWeight: activeTab === tab.key ? '600' : '500',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
+              key={key}
+              className={`tab-btn${activeTab === key ? ' active' : ''}`}
+              onClick={() => setActiveTab(key)}
+              id={`tab-${key.toLowerCase()}`}
             >
-              {tab.label}
+              {label}
+              <span style={{ marginLeft: 4, fontSize: '0.65rem', opacity: 0.75 }}>({counts[key]})</span>
             </button>
           ))}
         </div>
-
-        {/* Search Bar */}
-        <div style={{ position: 'relative', minWidth: '240px' }}>
-          <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input 
-            type="text" 
-            placeholder="Search payment ID, reason..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ width: '100%', paddingLeft: '32px' }}
-          />
-        </div>
-
       </div>
 
-      {/* 3. TABLE */}
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Payment ID</th>
-                <th>Failure Reason</th>
-                <th>Recommended Action</th>
-                <th>Recovery Probability</th>
-                <th>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span>Expected Value</span>
-                    <ArrowUpDown size={12} style={{ color: 'var(--color-info)' }} />
-                  </div>
-                </th>
-                <th>Safety Status</th>
-                <th style={{ textAlign: 'right' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+      {/* ── Table ───────────────────────────────────────────── */}
+      <div className="decision-section">
+        {loading ? (
+          <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.84rem' }}>
+            <RefreshCw size={14} className="animate-spin" style={{ marginRight: 6 }} />
+            Loading recovery queue…
+          </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.84rem' }}>
+            {search ? 'No payments match your search.' : 'No opportunities found. Run a revenue scan to populate the queue.'}
+          </div>
+        ) : (
+          <div className="table-container">
+            <table>
+              <thead>
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                    <RotateCcw size={24} className="animate-spin" style={{ margin: '0 auto 10px', color: 'var(--color-info)' }} />
-                    <div>Loading recovery queue...</div>
-                  </td>
+                  <ThSort col="paymentId"          label="Payment ID" />
+                  <ThSort col="amount"              label="Amount" />
+                  <th>Failure</th>
+                  <ThSort col="recoveryProbability" label="Probability" />
+                  <ThSort col="expectedValue"       label="Expected Value" />
+                  <th>Recommended Action</th>
+                  <th>Safety</th>
+                  <th>Status</th>
+                  <th></th>
                 </tr>
-              ) : filteredOpps.length === 0 ? (
-                <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                    No matching recovery opportunities found in queue.
-                  </td>
-                </tr>
-              ) : (
-                filteredOpps.map(opp => {
-                  const id = opp.opportunityId || opp.paymentId;
-                  const isBlocked = opp.policyStatus === 'BLOCKED' || opp.recommendedStrategy === 'STOP_RECOVERY' || opp.recommendedAction === 'STOP_RECOVERY';
-                  const isRecovered = opp.status === 'RECOVERED';
-                  const prob = Math.round((opp.recoveryProbability || 0.85) * 100);
-
+              </thead>
+              <tbody>
+                {filtered.map(opp => {
+                  const id = opp.paymentId || opp.opportunityId;
                   return (
-                    <tr key={id}>
+                    <tr key={id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/investigation/${id}`)}>
                       <td>
-                        <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
-                          #{opp.paymentId || opp.opportunityId}
-                        </div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                          ₹{opp.amount?.toLocaleString()}
-                        </div>
+                        <span className="font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {id}
+                        </span>
                       </td>
-                      <td>
+                      <td style={{ fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                        {fmt(opp.amount)}
+                      </td>
+                      <td style={{ maxWidth: 160 }}>
                         <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                          {opp.failureReason || opp.failureType || 'Gateway Timeout'}
+                          {(opp.failureReason || opp.failureType || '—').replace(/_/g, ' ')}
                         </span>
                       </td>
-                      <td>
-                        <span style={{ fontWeight: '600', color: isBlocked ? 'var(--text-muted)' : 'var(--color-info)' }}>
-                          {String(opp.recommendedStrategy || opp.recommendedAction || 'DELAYED_RETRY').replace(/_/g, ' ')}
-                        </span>
+                      <td style={{ fontWeight: 600, color: 'var(--color-blue)', whiteSpace: 'nowrap' }}>
+                        {pct((opp.recoveryProbability ?? 0) * 100)}
                       </td>
-                      <td>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: '600', color: isBlocked ? 'var(--text-muted)' : (prob >= 75 ? 'var(--color-healthy)' : 'var(--color-warning)') }}>
-                          {isBlocked ? '—' : `${prob}%`}
-                        </span>
+                      <td style={{ fontWeight: 600, color: 'var(--color-success)', whiteSpace: 'nowrap' }}>
+                        {fmt(opp.expectedValue)}
                       </td>
-                      <td>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: '600', color: isBlocked ? 'var(--text-muted)' : 'var(--color-healthy)' }}>
-                          ₹{(opp.expectedValue || (opp.amount * 0.85 - 10)).toLocaleString()}
-                        </span>
+                      <td style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        {(opp.recommendedAction || opp.recommendedStrategy || '—').replace(/_/g, ' ')}
                       </td>
+                      <td>{policyBadge(opp.policyStatus)}</td>
+                      <td>{statusBadge(opp.status)}</td>
                       <td>
-                        {isRecovered ? (
-                          <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>[RECOVERED]</span>
-                        ) : isBlocked ? (
-                          <span className="badge badge-danger" style={{ fontSize: '0.7rem' }}>[BLOCKED]</span>
-                        ) : (
-                          <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>[ELIGIBLE]</span>
-                        )}
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button 
-                          className="btn btn-secondary"
-                          onClick={() => navigate(`/investigation/${opp.paymentId || opp.opportunityId}`)}
-                          style={{ fontSize: '0.72rem', padding: '4px 10px' }}
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/investigation/${id}`); }}
+                          id={`investigate-${id}`}
                         >
+                          <Compass size={12} />
                           Investigate
                         </button>
                       </td>
                     </tr>
                   );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {filtered.length > 0 && (
+          <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-color)', fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+            <span>Showing {filtered.length} of {opportunities.length} opportunities</span>
+            <span>Sorted by {sort.col.replace(/([A-Z])/g, ' $1').toLowerCase()} ({sort.dir}ending)</span>
+          </div>
+        )}
       </div>
-
     </div>
   );
 };

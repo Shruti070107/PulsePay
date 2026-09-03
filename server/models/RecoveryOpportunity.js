@@ -140,6 +140,26 @@ const recoveryOpportunitySchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    policyChecks: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+    },
+    featureInfluence: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+    },
+    reasons: {
+      type: [String],
+      default: [],
+    },
+    explanations: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    stopConditions: {
+      type: [String],
+      default: [],
+    },
     status: {
       type: String,
       required: true,

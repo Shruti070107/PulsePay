@@ -1,5 +1,25 @@
 const API_BASE = '/api';
 
+export const getAuthToken = () => sessionStorage.getItem('pulsepay_token');
+
+export const authRequest = async (path, options = {}) => {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  const token = getAuthToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error?.message || 'Unable to complete the request.');
+  return data;
+};
+
+export const registerUser = (payload) => authRequest('/auth/register', { method: 'POST', body: JSON.stringify(payload) });
+export const loginUser = (payload) => authRequest('/auth/login', { method: 'POST', body: JSON.stringify(payload) });
+export const getCurrentUser = () => authRequest('/auth/me');
+export const logoutUser = () => authRequest('/auth/logout', { method: 'POST' });
+export const runRecoveryMission = (payload = {}) => authRequest('/recovery/mission', { method: 'POST', body: JSON.stringify(payload) });
+export const compareStrategies = (payload = {}) => authRequest('/recovery/compare-strategies', { method: 'POST', body: JSON.stringify(payload) });
+
+
 // Incidents
 export const getIncidents = async (filters = {}) => {
   const params = new URLSearchParams();

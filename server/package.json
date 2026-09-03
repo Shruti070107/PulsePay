@@ -6,12 +6,14 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "node tests/stateEngine.test.js && node tests/incidentEngine.test.js && node tests/aiInvestigator.test.js && node tests/fullPipeline.test.js && node tests/evidenceEngine.test.js && node tests/dataLab.test.js && node tests/upgrades.test.js && node tests/labService.test.js && node tests/revenueRecovery.test.js && node tests/recoveryBenchmark.test.js && node tests/recoveryCalibration.test.js"
+    "test": "node tests/auth.test.js && node tests/stateEngine.test.js && node tests/incidentEngine.test.js && node tests/aiInvestigator.test.js && node tests/fullPipeline.test.js && node tests/evidenceEngine.test.js && node tests/dataLab.test.js && node tests/upgrades.test.js && node tests/labService.test.js && node tests/revenueRecovery.test.js && node tests/recoveryBenchmark.test.js && node tests/recoveryCalibration.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.3.1"
   },
   "devDependencies": {

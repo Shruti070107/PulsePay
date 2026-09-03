@@ -123,74 +123,67 @@ const buildDeterministicAgentReport = (summaryContextOrOpps, maybeOpps) => {
   if (Array.isArray(summaryContextOrOpps)) {
     opps = summaryContextOrOpps;
     const totalRisk = opps.reduce((sum, o) => sum + (o.amount || 0), 0);
-    const totalRec = opps.reduce((sum, o) => sum + (o.estimatedRecoverableAmount || (o.amount * 0.8)), 0);
-    summaryContext = { totalRevenueAtRisk: totalRisk, estimatedRecoverableAmount: totalRec };
+    const totalRec = opps.reduce((sum, o) => sum + (o.estimatedRecoverableAmount || 0), 0);
+    summaryContext = { totalRevenueAtRisk: totalRisk, estimatedRecoverableAmount: totalRec, eligibleRevenue: opps.filter(o => o.policyStatus === 'ELIGIBLE').reduce((sum, o) => sum + (o.amount || 0), 0) };
   } else {
-    summaryContext = summaryContextOrOpps || { totalRevenueAtRisk: 10000, estimatedRecoverableAmount: 8000 };
+    summaryContext = summaryContextOrOpps || { totalRevenueAtRisk: 0, estimatedRecoverableAmount: 0, eligibleRevenue: 0 };
     opps = Array.isArray(maybeOpps) ? maybeOpps : [];
   }
 
-  const retryCount = opps.filter(o => o.recommendedAction === 'RETRY_PAYMENT' && o.policyStatus === 'ELIGIBLE').length;
-  const reconcileCount = opps.filter(o => o.recommendedAction === 'RECONCILE_WEBHOOK' && o.policyStatus === 'ELIGIBLE').length;
-  const recoveryLinkCount = opps.filter(o => o.recommendedAction === 'SEND_RECOVERY_LINK' && o.policyStatus === 'ELIGIBLE').length;
   const blockedCount = opps.filter(o => o.policyStatus === 'BLOCKED').length;
 
   const evidenceList = Array.from(new Set(opps.flatMap(o => o.evidenceIds || []))).slice(0, 8);
+  const eligibleCount = opps.filter(o => o.policyStatus === 'ELIGIBLE').length;
+  const confidenceValues = opps.map(o => Number(o.confidence)).filter(Number.isFinite);
+  const avgConfidence = confidenceValues.length > 0
+    ? Math.round(confidenceValues.reduce((sum, value) => sum + value, 0) / confidenceValues.length)
+    : (opps.length > 0
+      ? Math.round(opps.reduce((sum, o) => sum + ['opportunityId', 'amount', 'failureReason', 'expectedValue', 'recommendedAction'].filter(field => o[field] != null).length / 5, 0) / opps.length * 100)
+      : 0);
+  const actionGroups = new Map();
+  opps.filter(o => o.policyStatus === 'ELIGIBLE').forEach((opp) => {
+    const action = opp.recommendedAction || 'UNSPECIFIED';
+    const group = actionGroups.get(action) || { count: 0, expectedYield: 0 };
+    group.count += 1;
+    group.expectedYield += Number(opp.expectedValue) || 0;
+    actionGroups.set(action, group);
+  });
+  const recommendedActions = Array.from(actionGroups.entries())
+    .sort(([, left], [, right]) => right.expectedYield - left.expectedYield)
+    .map(([action, group]) => ({
+      action,
+      targetCount: group.count,
+      priority: group.expectedYield > 0 ? 'HIGH' : 'LOW',
+      expectedYield: Math.round(group.expectedYield),
+      reason: 'Aggregated from persisted opportunity expected values and policy status.',
+    }));
+  const blockedActions = opps.filter(o => o.policyStatus === 'BLOCKED').map(o => ({
+    action: o.recommendedAction || 'UNSPECIFIED',
+    count: 1,
+    reason: o.blockedReason || 'Blocked reason unavailable for this record.',
+  }));
+  const topAction = recommendedActions[0]?.action || 'NO_ACTION';
 
   return {
     status: 'COMPLETED',
     summary: `Identified ${opps.length} revenue leakage candidate transactions with ₹${summaryContext.totalRevenueAtRisk.toLocaleString()} total exposure, of which ₹${summaryContext.estimatedRecoverableAmount.toLocaleString()} is realistically recoverable across prioritized action channels.`,
     revenueAtRisk: summaryContext.totalRevenueAtRisk,
     estimatedRecoverableAmount: summaryContext.estimatedRecoverableAmount,
-    recommendedStrategy: 'Multi-Channel Expected Value Optimization (Automated Retries & Instant Webhook Ledger Sync)',
-    reasoning: 'Prioritizing immediate automated retry for transient network timeouts yields the highest expected value. For captured order mismatches, webhook reconciliation recovers 100% of order revenue with zero customer billing friction.',
+    recommendedStrategy: topAction,
+    reasoning: 'This report is assembled from the persisted opportunity records, their expected values, and backend policy decisions.',
     facts: [
       `Total active payment opportunities evaluated: ${opps.length}`,
       `Total revenue at risk across failed/unpaid flows: ₹${summaryContext.totalRevenueAtRisk.toLocaleString()}`,
-      `Eligible transactions passing policy guardrails: ${opps.length - blockedCount}`,
+      `Eligible transactions passing policy guardrails: ${eligibleCount}`,
       `Transactions halted by safety policy: ${blockedCount}`,
     ],
-    inferences: [
-      'Transient timeout failures have an average simulated recoverability probability of 85%+ on initial retry.',
-      'Reconciliation actions represent immediate zero-cost revenue salvage without customer re-prompting.',
-    ],
-    hypotheses: [
-      'Downstream acquiring bank gateway experienced intermittent network latency spikes.',
-      'Merchant webhook receiver experienced temporary connection pool saturation.',
-    ],
-    supportingEvidence: evidenceList.length > 0 ? evidenceList : ['EV-RECOVERY-SCAN-01', 'EV-POLICY-CHECK-02'],
-    citations: evidenceList.length > 0 ? evidenceList : ['EV-RECOVERY-SCAN-01', 'EV-POLICY-CHECK-02'],
-    recommendedActions: [
-      {
-        action: 'RETRY_PAYMENT',
-        targetCount: retryCount,
-        priority: 'HIGH',
-        expectedYield: Math.round(summaryContext.estimatedRecoverableAmount * 0.65),
-        reason: 'Automated retry for transient timeout exceptions with retryCount < 2.',
-      },
-      {
-        action: 'RECONCILE_WEBHOOK',
-        targetCount: reconcileCount,
-        priority: 'HIGH',
-        expectedYield: Math.round(summaryContext.estimatedRecoverableAmount * 0.25),
-        reason: 'Synchronize merchant order records where payment was already captured by gateway.',
-      },
-      {
-        action: 'SEND_RECOVERY_LINK',
-        targetCount: recoveryLinkCount,
-        priority: 'MEDIUM',
-        expectedYield: Math.round(summaryContext.estimatedRecoverableAmount * 0.10),
-        reason: 'Send digital payment prompt to customers with soft declines.',
-      },
-    ],
-    blockedActions: [
-      {
-        action: 'RETRY_PAYMENT',
-        count: blockedCount,
-        reason: 'Halted by safety policy: retry limit exceeded or permanent card decline signature.',
-      },
-    ],
-    confidence: 94,
+    inferences: [],
+    hypotheses: [],
+    supportingEvidence: evidenceList,
+    citations: evidenceList.length > 0 ? evidenceList : opps.map(o => o.opportunityId).filter(Boolean).slice(0, 8),
+    recommendedActions,
+    blockedActions,
+    confidence: avgConfidence,
     limitations: 'Calculations are based on synthetic telemetry and calibrated probabilistic benchmarks; real money is never moved.',
   };
 };

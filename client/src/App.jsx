@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, RotateCcw, Compass, Scale, ChevronDown, ChevronRight,
-  CreditCard, AlertCircle, Terminal, Target, Activity, ShieldCheck, HelpCircle, LogOut
+  CreditCard, AlertCircle, Terminal, Target, Activity, ShieldCheck, HelpCircle, LogOut, MessageSquare, Menu, X
 } from 'lucide-react';
 
 import { ToastProvider } from './components/Toast';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import { getCurrentUser, logoutUser } from './api';
 import Dashboard from './pages/Dashboard';
 import Recovery from './pages/Recovery';
 import PaymentRecoveryDetail from './pages/PaymentRecoveryDetail';
@@ -17,6 +19,8 @@ import IncidentDetails from './pages/IncidentDetails';
 import Payments from './pages/Payments';
 import PaymentDetails from './pages/PaymentDetails';
 import DeveloperConsole from './pages/DeveloperConsole';
+import Copilot from './pages/Copilot';
+import RecoveryMission from './pages/RecoveryMission';
 
 function ProtectedRoute({ children, isAuthenticated }) {
   const location = useLocation();
@@ -28,6 +32,7 @@ function ProtectedRoute({ children, isAuthenticated }) {
 
 function AppLayout({ isAuthenticated, setIsAuthenticated }) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -38,7 +43,9 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
 
   // Handle subtle demo sign-out
   const handleSignOut = () => {
+    logoutUser().catch(() => {});
     sessionStorage.removeItem('pulsepay_auth');
+    sessionStorage.removeItem('pulsepay_token');
     setIsAuthenticated(false);
     navigate('/login');
   };
@@ -46,7 +53,11 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
   return (
     <ProtectedRoute isAuthenticated={isAuthenticated}>
       <div className="app-container">
-        <aside className="sidebar">
+        <button className="mobile-nav-trigger" onClick={() => setMobileNavOpen(open => !open)} aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'}>
+          {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
+        <div className={`mobile-nav-overlay ${mobileNavOpen ? 'open' : ''}`} onClick={() => setMobileNavOpen(false)} />
+        <aside className={`sidebar ${mobileNavOpen ? 'mobile-open' : ''}`}>
           {/* Logo & Brand Header */}
           <div className="logo">
             <Activity className="logo-icon" size={22} style={{ color: 'var(--color-info)' }} />
@@ -114,6 +125,18 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
                 <NavLink to="/experiments" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
                   <Scale size={17} />
                   <span>Experiments</span>
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/copilot" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                  <MessageSquare size={17} />
+                  <span>Operations Copilot</span>
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/mission" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                  <Target size={17} />
+                  <span>Recovery Mission</span>
                 </NavLink>
               </li>
 
@@ -211,6 +234,8 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             
             {/* Experiments / Benchmark Routes */}
             <Route path="/experiments" element={<RecoveryBenchmark />} />
+            <Route path="/mission" element={<RecoveryMission />} />
+            <Route path="/copilot" element={<Copilot />} />
             <Route path="/benchmark" element={<RecoveryBenchmark />} />
             
             {/* Advanced / Supporting Routes */}
@@ -232,16 +257,33 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
 }
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem('pulsepay_auth') === 'true';
-  });
+  const [authState, setAuthState] = useState(() => (
+    sessionStorage.getItem('pulsepay_token') ? 'checking' : 'signed_out'
+  ));
+  const isAuthenticated = authState === 'authenticated';
+
+  useEffect(() => {
+    if (authState !== 'checking') return;
+    getCurrentUser()
+      .then(() => setAuthState('authenticated'))
+      .catch(() => {
+        sessionStorage.removeItem('pulsepay_auth');
+        sessionStorage.removeItem('pulsepay_token');
+        setAuthState('signed_out');
+      });
+  }, [authState]);
+
+  if (authState === 'checking') {
+    return <div className="auth-shell"><div style={{ color: 'var(--text-secondary)' }}>Restoring your session…</div></div>;
+  }
 
   return (
     <ToastProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<Login onLogin={() => setIsAuthenticated(true)} />} />
-          <Route path="/*" element={<AppLayout isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} />
+          <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={() => setAuthState('authenticated')} />} />
+          <Route path="/register" element={isAuthenticated ? <Navigate to="/" replace /> : <Register onLogin={() => setAuthState('authenticated')} />} />
+          <Route path="/*" element={<AppLayout isAuthenticated={isAuthenticated} setIsAuthenticated={(authenticated) => setAuthState(authenticated ? 'authenticated' : 'signed_out')} />} />
         </Routes>
       </Router>
     </ToastProvider>

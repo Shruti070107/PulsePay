@@ -42,6 +42,8 @@ const simulateScenario = async (req, res, next) => {
       'provider_degradation': 'generateProviderDegradation',
       'high-decline-rate': 'generateHighDeclineRate',
       'high_decline_rate': 'generateHighDeclineRate',
+      'permanent-decline': 'generatePermanentDecline',
+      'permanent_decline': 'generatePermanentDecline',
       'partial-capture': 'generatePartialCapture',
       'partial_capture': 'generatePartialCapture',
       'amount-mismatch': 'generateAmountMismatch',
@@ -125,6 +127,9 @@ const triggerDemoMode = async (req, res, next) => {
     const WebhookEvent = require('../models/WebhookEvent');
     const Incident = require('../models/Incident');
     const Investigation = require('../models/Investigation');
+    const RecoveryOpportunity = require('../models/RecoveryOpportunity');
+    const RecoveryAction = require('../models/RecoveryAction');
+    const RecoveryCampaign = require('../models/RecoveryCampaign');
     const { runIncidentDetectionAndAggregation } = require('../services/incident/incidentAggregator');
     const { extractFeaturesForPayment } = require('../services/ml/featureExtractor');
     const { trainModelOnDataset } = require('../services/ml/mlClient');
@@ -136,7 +141,10 @@ const triggerDemoMode = async (req, res, next) => {
       Order.deleteMany({}),
       WebhookEvent.deleteMany({}),
       Incident.deleteMany({}),
-      Investigation.deleteMany({})
+      Investigation.deleteMany({}),
+      RecoveryOpportunity.deleteMany({}),
+      RecoveryAction.deleteMany({}),
+      RecoveryCampaign.deleteMany({})
     ]);
 
     // 2. Generate controlled batch representing the 20 failure patterns
@@ -163,6 +171,7 @@ const triggerDemoMode = async (req, res, next) => {
       'generateMerchantTimeout',
       'generateProviderDegradation',
       'generateHighDeclineRate',
+      'generatePermanentDecline',
       'generatePartialCapture',
       'generateAmountMismatch',
       'generateOrderStateMismatch',

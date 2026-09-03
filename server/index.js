@@ -15,6 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 const mlClient = require('./services/ml/mlClient');
+const authRoutes = require('./routes/authRoutes');
+const { requireAuth } = require('./middleware/auth');
 
 // Health Check Endpoint
 app.get(['/health', '/api/health'], async (req, res) => {
@@ -62,6 +64,9 @@ app.get('/api/ml/health', async (req, res) => {
     });
   }
 });
+
+app.use('/api/auth', authRoutes);
+app.use('/api', requireAuth);
 
 // Import Routes
 const simulatorRoutes = require('./routes/simulatorRoutes');
