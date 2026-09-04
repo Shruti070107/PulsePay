@@ -17,26 +17,70 @@
 </p>
 
 <p align="center">
-
-![AI Revenue Recovery](https://img.shields.io/badge/AI-Revenue%20Recovery-2563EB?style=for-the-badge)
-![Calibrated ML](https://img.shields.io/badge/ML-Calibrated-059669?style=for-the-badge)
-![Deterministic Safety](https://img.shields.io/badge/Safety-Deterministic-D97706?style=for-the-badge)
-![Synthetic Benchmark](https://img.shields.io/badge/Data-Synthetic-0284C7?style=for-the-badge)
-
+  <a href="#core-intelligence"><img src="https://img.shields.io/badge/AI-Revenue%20Recovery-2563EB?style=for-the-badge" alt="AI Revenue Recovery"></a>
+  <a href="#probability-calibration"><img src="https://img.shields.io/badge/ML-Calibrated-059669?style=for-the-badge" alt="Calibrated ML"></a>
+  <a href="#expected-value"><img src="https://img.shields.io/badge/Optimization-Economic%20Value-D97706?style=for-the-badge" alt="Economic Optimization"></a>
+  <a href="#safety-and-execution"><img src="https://img.shields.io/badge/Safety-Deterministic-DC2626?style=for-the-badge" alt="Deterministic Safety"></a>
+  <a href="#safety-and-execution"><img src="https://img.shields.io/badge/Execution-Bounded-0284C7?style=for-the-badge" alt="Bounded Execution"></a>
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/React-Frontend-61DAFB?logo=react&logoColor=111827" alt="React">
+  <img src="https://img.shields.io/badge/Vite-Build-646CFF?logo=vite&logoColor=white" alt="Vite">
+  <img src="https://img.shields.io/badge/Node.js-Backend-339933?logo=node.js&logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/Express-API-000000?logo=express&logoColor=white" alt="Express">
+  <img src="https://img.shields.io/badge/MongoDB-Data-47A248?logo=mongodb&logoColor=white" alt="MongoDB">
+  <img src="https://img.shields.io/badge/FastAPI-ML%20Service-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/scikit--learn-Calibration-F7931E?logo=scikit-learn&logoColor=white" alt="scikit-learn">
+</p>
 
-![React](https://img.shields.io/badge/React-2026-61DAFB?logo=react&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-2026-646CFF?logo=vite&logoColor=white)
-![Node](https://img.shields.io/badge/Node.js-2026-339933?logo=node.js&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-2026-47A248?logo=mongodb&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-2026-009688?logo=fastapi&logoColor=white)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-2026-F7931E?logo=scikit-learn&logoColor=white)
+<br>
 
+<p align="center">
+  <strong>Measured benchmark outcomes</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/₹1.41%20Cr-Net%20Recovery-2563EB?style=for-the-badge" alt="₹1.41 Cr net recovery">
+  <img src="https://img.shields.io/badge/+21.0%25-Net%20Lift-059669?style=for-the-badge" alt="+21.0% net lift">
+  <img src="https://img.shields.io/badge/₹24.45%20L-Incremental%20Value-D97706?style=for-the-badge" alt="₹24.45 L incremental value">
+  <img src="https://img.shields.io/badge/0-Duplicate%20Charges-059669?style=for-the-badge" alt="0 duplicate charges">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/317-Unsafe%20Actions%20Prevented-DC2626?style=for-the-badge" alt="317 unsafe actions prevented">
+  <img src="https://img.shields.io/badge/96.0%25-Recovery%20Precision-0284C7?style=for-the-badge" alt="96.0% recovery precision">
+  <img src="https://img.shields.io/badge/100.0%25-Recovery%20Recall-0284C7?style=for-the-badge" alt="100.0% recovery recall">
+  <img src="https://img.shields.io/badge/14.8%25-ECE-64748B?style=for-the-badge" alt="14.8% ECE">
 </p>
 
 ---
+
+# Table of Contents
+
+- [Overview](#overview)
+- [The Problem](#the-problem)
+- [Why Blind Retry Is Not Enough](#why-blind-retry-is-not-enough)
+- [How It Works](#how-it-works)
+- [Core Intelligence](#core-intelligence)
+  - [Revenue Risk Detection](#revenue-risk-detection)
+  - [Recovery Scoring](#recovery-scoring)
+  - [Probability Calibration](#probability-calibration)
+  - [Expected Value](#expected-value)
+  - [Strategy Selection](#strategy-selection)
+- [Safety and Execution](#safety-and-execution)
+- [AI vs Deterministic Control](#ai-vs-deterministic-control)
+- [Explainability and Decision Trace](#explainability-and-decision-trace)
+- [Product Experience](#product-experience)
+  - [Revenue Center](#revenue-center)
+  - [Recovery Queue](#recovery-queue)
+  - [Payment Investigation](#payment-investigation)
+  - [Recovery Mission](#recovery-mission)
+  - [Experiments and Benchmark](#experiments-and-benchmark)
+  - [Operations Copilot](#operations-copilot)
+- [Architecture](#architecture)
+- [Technology Stack](#technology-stack)
+- [ML Architecture](#ml-architecture)
 
 ## The idea in 30 seconds
 
