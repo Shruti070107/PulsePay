@@ -2006,10 +2006,6 @@ See `LICENSE` for details.
 
 <br>
 
-Built for the **Razorpay AI Buildathon 2026** 🚀
-
-<br>
-
 **ML estimates probability.
 Deterministic policies control execution.**
 
