@@ -46,7 +46,6 @@ Treating every failure the same creates three major problems:
 
 Traditional recovery often looks like:
 
-```text
 Payment Failed
       ↓
 Retry
@@ -85,7 +84,6 @@ The platform combines:
 
 Instead of treating AI as an unrestricted executor, PulsePay separates intelligence from execution authority.
 
-```text
                     PAYMENT FAILURE
                            ↓
                   Revenue Risk Detection
