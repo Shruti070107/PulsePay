@@ -1,7 +1,3 @@
-Yes — you're right. The previous one is **too bloated**. Let's target roughly **1,400–1,600 lines**, while keeping the important technical depth and removing repetition.
-
-Below is a tighter version designed to replace the current README directly.
-
 ````markdown
 <h1 align="center">
   ⚡ PulsePay
