@@ -67,6 +67,47 @@ PulsePay strictly separates probabilistic inference from deterministic execution
 - **Database**: MongoDB (Mongoose)
 - **ML Service**: Python, FastAPI, Scikit-Learn
 
+---
+
+## DEMO SETUP
+
+Follow these steps to run PulsePay cleanly from scratch:
+
+1. **Start MongoDB**
+   ```bash
+   mongod
+   ```
+   *(Ensure MongoDB is running locally on port 27017)*
+
+2. **Start ML & Backend Services**
+   ```bash
+   # Terminal 1: Start ML service (optional / supported)
+   cd ml && uvicorn app.main:app --reload --port 8000
+
+   # Terminal 2: Start Express backend
+   cd server && npm run dev
+   ```
+
+3. **Populate Synthetic Demo Data**
+   ```bash
+   # Terminal 3: Run authoritative demo seeder
+   cd server && npm run seed
+   ```
+   *This initializes the synthetic payment scenarios, scans opportunities, runs baseline recovery verification, and ensures the authoritative 10,000-record benchmark is present.*
+
+4. **Start Frontend**
+   ```bash
+   # Terminal 4: Start Vite client
+   cd client && npm run dev
+   ```
+
+5. **Login**
+   - Open [http://localhost:5173/login](http://localhost:5173/login) in your browser.
+   - Enter the demo operator credentials:
+     - **Email**: `ops@pulsepay.internal`
+     - **Password**: `demo12345`
+   - Alternatively, click the **"Quick Demo Sign-In"** button.
+
 ### Decision Pipeline Flow
 
 ```text
