@@ -1,61 +1,70 @@
 # ⚡ PulsePay
 
 <p align="center">
-
-### Evidence-Driven AI Revenue Recovery for Failed Payments
-
-**Recover more revenue without blindly retrying payments.**
-
+  <img src="https://img.shields.io/badge/PulsePay-AI%20Revenue%20Recovery-2563EB?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/AI-Evidence%20Driven-7C3AED?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Safety-Deterministic-059669?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Data-Synthetic-F59E0B?style=for-the-badge" />
 </p>
 
 <p align="center">
-
-![AI](https://img.shields.io/badge/AI-Revenue%20Recovery-2563EB?style=for-the-badge)
-![ML](https://img.shields.io/badge/ML-Calibrated-7C3AED?style=for-the-badge)
-![Safety](https://img.shields.io/badge/Safety-Deterministic-059669?style=for-the-badge)
-![Data](https://img.shields.io/badge/Data-Synthetic-F59E0B?style=for-the-badge)
-
+  <b>Recover smarter. Execute safely. Measure outcomes.</b>
 </p>
 
 <p align="center">
-
-![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=node.js&logoColor=white)
-![Express](https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
-![Scikit Learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit--learn&logoColor=white)
-
+  <a href="#-overview">Overview</a> •
+  <a href="#-problem">Problem</a> •
+  <a href="#-solution">Solution</a> •
+  <a href="#-how-it-works">How It Works</a> •
+  <a href="#-architecture">Architecture</a> •
+  <a href="#-benchmark">Benchmark</a> •
+  <a href="#-demo">Demo</a> •
+  <a href="#-setup">Setup</a>
 </p>
 
 ---
 
-## 🟦 What is PulsePay?
+# 📌 Overview
 
-PulsePay is an **evidence-driven AI revenue recovery and payment intelligence
-system** that determines:
+**PulsePay** is an evidence-driven AI revenue recovery and payment intelligence
+platform designed to help businesses recover revenue from failed payments
+without blindly retrying every transaction.
 
-> **Which failed payments are worth recovering, which intervention has the
-> highest expected economic value, and whether that action is safe to execute.**
+Instead of treating every payment failure as a retry opportunity, PulsePay
+builds a decision around:
 
-Instead of treating every failed payment as a retry opportunity, PulsePay
-combines:
+- payment failure evidence
+- historical payment behavior
+- recovery probability
+- probability calibration
+- expected economic value
+- alternative recovery strategies
+- deterministic safety policies
+- bounded execution
+- measured recovery outcomes
+
+The system is built around one fundamental principle:
+
+> **ML estimates probability. Deterministic policies control whether an action
+> is allowed.**
+
+This separation allows PulsePay to use machine learning where uncertainty
+exists while keeping financial execution behind explicit, auditable safety
+controls.
+
+---
+
+# 🎯 The Core Idea
+
+A traditional recovery workflow often looks like:
 
 ```text
-Payment Evidence
+Payment Failed
       ↓
-ML Recovery Probability
+Retry
       ↓
-Probability Calibration
+Retry Again
       ↓
-Expected Value
+Retry Again
       ↓
-Strategy Comparison
-      ↓
-Deterministic Safety Gates
-      ↓
-Bounded Execution
-      ↓
-Measured Outcome
+Hope It Works
