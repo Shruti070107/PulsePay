@@ -1,4 +1,3 @@
-````markdown
 <h1 align="center">
   💳 PulsePay
 </h1>
@@ -55,7 +54,6 @@ Retry
 Retry Again
       ↓
 Retry Again
-````
 
 PulsePay changes the question from:
 
