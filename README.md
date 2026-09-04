@@ -56,32 +56,6 @@
 
 ---
 
-# Table of Contents
-
-- [Overview](#overview)
-- [The Problem](#the-problem)
-- [Why Blind Retry Is Not Enough](#why-blind-retry-is-not-enough)
-- [How It Works](#how-it-works)
-- [Core Intelligence](#core-intelligence)
-  - [Revenue Risk Detection](#revenue-risk-detection)
-  - [Recovery Scoring](#recovery-scoring)
-  - [Probability Calibration](#probability-calibration)
-  - [Expected Value](#expected-value)
-  - [Strategy Selection](#strategy-selection)
-- [Safety and Execution](#safety-and-execution)
-- [AI vs Deterministic Control](#ai-vs-deterministic-control)
-- [Explainability and Decision Trace](#explainability-and-decision-trace)
-- [Product Experience](#product-experience)
-  - [Revenue Center](#revenue-center)
-  - [Recovery Queue](#recovery-queue)
-  - [Payment Investigation](#payment-investigation)
-  - [Recovery Mission](#recovery-mission)
-  - [Experiments and Benchmark](#experiments-and-benchmark)
-  - [Operations Copilot](#operations-copilot)
-- [Architecture](#architecture)
-- [Technology Stack](#technology-stack)
-- [ML Architecture](#ml-architecture)
-
 ## The idea in 30 seconds
 
 A failed payment does **not** automatically mean lost revenue.
@@ -1447,143 +1421,6 @@ It is to provide an intelligent, measurable decision layer around revenue recove
 
 ---
 
-# Why PulsePay
-
-Payment recovery itself is not a new idea.
-
-The interesting engineering problem is what happens **around** recovery: deciding which opportunity deserves attention, estimating how likely recovery is, understanding whether that estimate is trustworthy, comparing the economics of different actions, preventing unsafe execution, and measuring whether the decision actually created value.
-
-PulsePay brings those pieces into one decision loop:
-
-```text
-                    PULSEPAY DECISION LAYER
-
-        ┌─────────────────────────────────────┐
-        │        Revenue at Risk              │
-        └──────────────────┬──────────────────┘
-                           ↓
-        ┌─────────────────────────────────────┐
-        │        Recovery Probability         │
-        └──────────────────┬──────────────────┘
-                           ↓
-        ┌─────────────────────────────────────┐
-        │        Probability Calibration      │
-        └──────────────────┬──────────────────┘
-                           ↓
-        ┌─────────────────────────────────────┐
-        │        Expected Economic Value      │
-        └──────────────────┬──────────────────┘
-                           ↓
-        ┌─────────────────────────────────────┐
-        │      Counterfactual Strategies      │
-        └──────────────────┬──────────────────┘
-                           ↓
-        ┌─────────────────────────────────────┐
-        │       Deterministic Safety          │
-        └──────────────────┬──────────────────┘
-                           ↓
-        ┌─────────────────────────────────────┐
-        │          Bounded Execution           │
-        └──────────────────┬──────────────────┘
-                           ↓
-        ┌─────────────────────────────────────┐
-        │          Measured Outcome            │
-        └─────────────────────────────────────┘
-```
-
-This makes PulsePay more than a dashboard and more than a retry mechanism.
-
-It is a system for answering:
-
-> **What should we do?**
-
-> **Why is it the best option?**
-
-> **Is it safe to do?**
-
-> **What happened when we did it?**
-
-> **Did it create incremental value?**
-
-That distinction is the foundation of the project.
-
----
-
-# What PulsePay Optimizes
-
-PulsePay is designed around one central objective:
-
-> **Maximize safe economic recovery — not recovery activity.**
-
-That changes the optimization target.
-
-A system that executes 10,000 retries is not necessarily better than one that executes 5,000 carefully selected actions.
-
-The better system is the one that:
-
-- identifies the right opportunities,
-- makes reliable probability estimates,
-- selects economically valuable strategies,
-- blocks unsafe actions,
-- limits automation,
-- and produces measurable incremental recovery.
-
-In other words:
-
-```text
-More retries
-    ≠
-More value
-
-Better decisions
-    +
-Better controls
-    +
-Measured outcomes
-    =
-Better recovery economics
-```
-
----
-
-# Design Philosophy
-
-PulsePay is built around a few principles.
-
-### 🧠 Intelligence should be measurable
-
-A probability score is not enough.
-
-PulsePay evaluates calibration so that confidence can be compared against observed outcomes.
-
-### 💰 Economics should influence decisions
-
-The highest-probability action is not automatically the highest-value action.
-
-Expected economic value is part of strategy selection.
-
-### 🛡️ Safety should not depend on AI behavior
-
-Critical constraints remain deterministic.
-
-A model can recommend an action, but it cannot override permanent-decline protection, duplicate protection, retry budgets, financial viability, or idempotency controls.
-
-### 🔍 Decisions should be explainable
-
-An operator should be able to trace a decision from payment evidence through model output, economics, policy, execution, and outcome.
-
-### ⚙️ Automation should be bounded
-
-Automated financial workflows need explicit limits and server-side enforcement.
-
-### 📊 Success should be measured after execution
-
-A prediction is only one part of the system.
-
-The final question is whether the action produced the expected outcome.
-
----
-
 # Business Potential
 
 The underlying problem exists anywhere recurring or transactional payments can fail and revenue can be recovered.
@@ -1665,99 +1502,52 @@ That makes the architecture extensible beyond one payment failure workflow.
 
 ---
 
-# Final Takeaway
+# Closing Perspective
 
-PulsePay starts with a simple observation:
+PulsePay started with a simple question:
 
-> **A failed payment is not necessarily lost revenue.**
+> **What if a failed payment were treated as a decision problem rather than a retry trigger?**
 
-But recovering that revenue responsibly requires more than retrying the payment.
+The answer is a recovery system that combines prediction with calibration, economics with strategy selection, and automation with deterministic safety.
 
-A serious recovery system needs to understand:
+The benchmark shows measurable value under a controlled synthetic distribution. More importantly, the architecture provides a foundation for building recovery workflows that are **explainable, bounded, and outcome-driven**.
 
-```text
-Is the opportunity recoverable?
+The long-term goal is simple:
 
-How likely is recovery?
-
-How reliable is that probability?
-
-Which strategy creates the most expected value?
-
-Is the action safe?
-
-Is the action still within its execution limits?
-
-What happened after execution?
-
-Did the decision create incremental value?
-```
-
-PulsePay turns those questions into a single measurable system:
-
-```text
-                         ┌──────────────┐
-                         │    DETECT    │
-                         └──────┬───────┘
-                                ↓
-                         ┌──────────────┐
-                         │    SCORE     │
-                         └──────┬───────┘
-                                ↓
-                         ┌──────────────┐
-                         │  CALIBRATE   │
-                         └──────┬───────┘
-                                ↓
-                         ┌──────────────┐
-                         │   OPTIMIZE   │
-                         └──────┬───────┘
-                                ↓
-                         ┌──────────────┐
-                         │   PROTECT    │
-                         └──────┬───────┘
-                                ↓
-                         ┌──────────────┐
-                         │   EXECUTE    │
-                         └──────┬───────┘
-                                ↓
-                         ┌──────────────┐
-                         │   MEASURE    │
-                         └──────┬───────┘
-                                │
-                                └──────────────↺
-```
-
-The benchmark demonstrates the idea under a controlled synthetic distribution:
-
-**₹1.41 Cr** in PulsePay net recovery versus **₹1.16 Cr** for blind retry, producing **₹24.45 lakh incremental net value** and a **+21.0% net lift**, while recording **0 duplicate charges** and preventing **317 unsafe actions**.
-
-The numbers are important, but the architecture behind them is the real product idea:
-
-> **Don't optimize for more retries. Optimize for better recovery decisions.**
-
-And don't stop at the decision.
-
-> **Make the decision explainable, make the execution safe, and measure the outcome.**
+> **Turn revenue recovery from blind activity into measurable decision intelligence.**
 
 ---
 
+## ⭐ Support the Project
+
+If you find PulsePay interesting:
+
+- ⭐ **Star the repository**
+- 🍴 **Fork the project**
+- 💡 **Suggest improvements**
+- 🛠️ **Contribute new recovery strategies or evaluation ideas**
+- 📊 **Experiment with the benchmark and share findings**
+
+Every contribution helps push the project toward better, safer, and more measurable financial automation.
+
 <p align="center">
 
-## ⚡ PulsePay
+### ⚡ PulsePay
 
 <strong>Evidence-Driven AI Revenue Recovery</strong>
 
-<br><br>
+<br>
 
-<em>Recover intelligently.<br>
-Execute safely.<br>
-Measure what matters.</em>
+<em>Recover intelligently · Execute safely · Measure what matters</em>
 
 <br><br>
 
-![Net Recovery](https://img.shields.io/badge/Net%20Recovery-₹1.41%20Cr-059669?style=for-the-badge)
-![Net Lift](https://img.shields.io/badge/Net%20Lift-+21.0%25-2563EB?style=for-the-badge)
-![Zero Duplicates](https://img.shields.io/badge/Duplicate%20Charges-0-059669?style=for-the-badge)
-![Unsafe Prevented](https://img.shields.io/badge/Unsafe%20Actions%20Prevented-317-D97706?style=for-the-badge)
+<img src="https://img.shields.io/badge/Net%20Recovery-₹1.41%20Cr-059669?style=for-the-badge" alt="Net Recovery">
+<img src="https://img.shields.io/badge/Net%20Lift-+21.0%25-2563EB?style=for-the-badge" alt="Net Lift">
+<img src="https://img.shields.io/badge/Duplicate%20Charges-0-059669?style=for-the-badge" alt="Zero Duplicate Charges">
+
+<br><br>
+
+<sub>Built around one principle: better recovery decisions create better outcomes.</sub>
 
 </p>
