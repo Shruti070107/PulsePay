@@ -1,4 +1,3 @@
-````markdown
 <h1 align="center">
   ⚡ PulsePay
 </h1>
@@ -1501,7 +1500,6 @@ The architecture intentionally separates probabilistic ML recommendations from d
 
 <br>
 
-### Built for the Razorpay AI Buildathon 2026 🚀
 
 </div>
 ```
