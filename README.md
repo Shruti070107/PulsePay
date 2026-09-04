@@ -1,56 +1,61 @@
-<h1 align="center">
-  ⚡ PulsePay
-</h1>
+# ⚡ PulsePay
 
-<div align="center">
+<p align="center">
+  <strong>Evidence-Driven AI Revenue Recovery & Payment Intelligence</strong>
+</p>
 
-### *Evidence-Driven AI Revenue Recovery & Payment Intelligence*
+<p align="center">
+  <em>Recover more revenue without blindly increasing retry volume.</em>
+</p>
 
-<strong>Don't blindly retry failed payments. Decide when recovery is worth it, which strategy is best, and whether it is safe to execute.</strong>
+<p align="center">
+  <a href="#overview">Overview</a> ·
+  <a href="#how-it-works">How It Works</a> ·
+  <a href="#benchmark">Benchmark</a> ·
+  <a href="#demo">Demo</a> ·
+  <a href="#setup">Setup</a>
+</p>
 
-<br><br>
+<p align="center">
 
 ![AI Revenue Recovery](https://img.shields.io/badge/AI-Revenue%20Recovery-2563EB?style=for-the-badge)
-![Calibrated ML](https://img.shields.io/badge/ML-Calibrated%20Probability-059669?style=for-the-badge)
-![Safety](https://img.shields.io/badge/Safety-Deterministic%20Guardrails-DC2626?style=for-the-badge)
-![Synthetic Data](https://img.shields.io/badge/Data-Synthetic%20%26%20Reproducible-D97706?style=for-the-badge)
+![Calibrated ML](https://img.shields.io/badge/ML-Calibrated-059669?style=for-the-badge)
+![Deterministic Safety](https://img.shields.io/badge/Safety-Deterministic-D97706?style=for-the-badge)
+![Synthetic Benchmark](https://img.shields.io/badge/Data-Synthetic-0284C7?style=for-the-badge)
 
-![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)
-![Vite](https://img.shields.io/badge/Vite-Frontend-646CFF?style=flat-square&logo=vite)
-![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?style=flat-square&logo=node.js)
-![Express](https://img.shields.io/badge/Express-API-000000?style=flat-square&logo=express)
-![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=flat-square&logo=mongodb)
-![FastAPI](https://img.shields.io/badge/FastAPI-ML%20Service-009688?style=flat-square&logo=fastapi)
-![scikit--learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?style=flat-square&logo=scikit-learn)
+</p>
 
-</div>
+<p align="center">
+
+![React](https://img.shields.io/badge/React-2026-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-2026-646CFF?logo=vite&logoColor=white)
+![Node](https://img.shields.io/badge/Node.js-2026-339933?logo=node.js&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-2026-47A248?logo=mongodb&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-2026-009688?logo=fastapi&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-2026-F7931E?logo=scikit-learn&logoColor=white)
+
+</p>
 
 ---
 
-# 🚀 Overview
+## The idea in 30 seconds
 
-Payment failures are not all equal.
+A failed payment does **not** automatically mean lost revenue.
 
-Some are temporary and highly recoverable. Others are permanently declined, have exhausted their retry budget, carry duplicate-charge risk, or are simply not worth another attempt economically.
+The hard problem is deciding:
 
-Traditional recovery often reduces the problem to:
+> **What should happen next, why is it valuable, and is it safe to execute?**
 
-```text
-Payment Failed
-      ↓
-Retry
-      ↓
-Retry Again
-````
+PulsePay treats payment recovery as a **decision optimization problem**, not a retry queue.
 
-PulsePay treats recovery as a **financial decision problem**:
+It combines machine-learning probability, probability calibration, expected-value analysis, counterfactual strategy comparison, deterministic safety policies, bounded execution, and outcome measurement.
 
 ```text
 Payment Failure
       ↓
-Evidence Collection
+Revenue Risk Detection
       ↓
-Recovery Probability
+Raw ML Probability
       ↓
 Probability Calibration
       ↓
@@ -58,822 +63,562 @@ Expected Net Value
       ↓
 Strategy Comparison
       ↓
-Deterministic Safety Checks
+Deterministic Safety Gates
       ↓
 Bounded Execution
       ↓
-Outcome Measurement
+Measured Outcome
 ```
-
-The central principle is:
 
 > **ML estimates probability. Deterministic policies control whether an action is allowed.**
 
 ---
 
-# 🎯 Problem
+## Benchmark at a glance
 
-Failed payments create revenue leakage, but blindly increasing retry attempts can create new problems:
+| Metric | PulsePay |
+|---|---:|
+| Net recovery | **₹1,40,64,879** |
+| Incremental net value | **₹24,45,683** |
+| Net lift vs blind retry | **+21.0%** |
+| Recovery precision | **96.0%** |
+| Recovery recall | **100.0%** |
+| Duplicate charges | **0** |
+| Unsafe actions prevented | **317** |
+| Evaluation records | **3,000** |
 
-* unnecessary payment attempts
-* additional recovery costs
-* repeated failures
-* customer friction
-* duplicate-charge risk
-* unsafe actions
-* negative-value recoveries
-* poor decision transparency
+**Baseline:** blind retry produced **₹1,16,19,196** net recovery on the same authoritative benchmark.
 
-The real question is not:
-
-> **"Can we retry this payment?"**
-
-It is:
-
-> **"Is this payment worth recovering, which intervention has the highest expected value, and is that action safe?"**
-
-PulsePay is built to answer that question.
+> These results come from a controlled synthetic benchmark and should not be interpreted as production performance.
 
 ---
 
-# 💡 What Makes PulsePay Different?
+# Table of Contents
 
-AI-powered payment recovery and smart retries already exist.
+- [Overview](#overview)
+- [The Problem](#the-problem)
+- [Why Blind Retry Is Not Enough](#why-blind-retry-is-not-enough)
+- [How It Works](#how-it-works)
+- [Core Intelligence](#core-intelligence)
+  - [Revenue Risk Detection](#revenue-risk-detection)
+  - [Recovery Scoring](#recovery-scoring)
+  - [Probability Calibration](#probability-calibration)
+  - [Expected Value](#expected-value)
+  - [Strategy Selection](#strategy-selection)
+- [Safety and Execution](#safety-and-execution)
+- [AI vs Deterministic Control](#ai-vs-deterministic-control)
+- [Explainability and Decision Trace](#explainability-and-decision-trace)
+- [Product Experience](#product-experience)
+  - [Revenue Center](#revenue-center)
+  - [Recovery Queue](#recovery-queue)
+  - [Payment Investigation](#payment-investigation)
+  - [Recovery Mission](#recovery-mission)
+  - [Experiments and Benchmark](#experiments-and-benchmark)
+  - [Operations Copilot](#operations-copilot)
+- [Architecture](#architecture)
+- [Technology Stack](#technology-stack)
+- [ML Architecture](#ml-architecture)
+- [Data Model](#data-model)
+- [Authentication and Security](#authentication-and-security)
+- [Benchmark](#benchmark)
+- [Benchmark Methodology](#benchmark-methodology)
+- [Benchmark Results](#benchmark-results)
+- [Economic Results](#economic-results)
+- [Calibration Results](#calibration-results)
+- [Safety Results](#safety-results)
+- [Live Operations vs Benchmark](#live-operations-vs-benchmark)
+- [Demo](#demo)
+- [Setup](#setup)
+- [Environment Configuration](#environment-configuration)
+- [Running PulsePay](#running-pulsepay)
+- [Testing](#testing)
+- [Project Structure](#project-structure)
+- [Engineering Principles](#engineering-principles)
+- [Limitations](#limitations)
+- [Production Considerations](#production-considerations)
+- [Roadmap](#roadmap)
+- [Why PulsePay](#why-pulsepay)
+- [Final Takeaway](#final-takeaway)
 
-PulsePay does **not** claim to have invented payment recovery.
+---
 
-Its focus is the decision architecture around recovery:
+# Overview
+
+PulsePay is an **evidence-driven AI revenue recovery system** for failed payments.
+
+Instead of treating every failed payment as an automatic retry candidate, PulsePay evaluates the payment as a decision:
 
 ```text
-Raw ML Probability
+Can it be recovered?
         ↓
-Calibration
+How likely is recovery?
         ↓
-Expected Net Value
+How reliable is that probability?
         ↓
-Strategy Selection
+Which action has the best expected value?
         ↓
-Safety Authorization
+Is that action safe and allowed?
         ↓
-Bounded Execution
-        ↓
-Measured Outcome
+What happened after execution?
 ```
 
-### Core differentiators
+The result is a closed decision loop:
 
-**1. Prediction ≠ Authorization**
+**Detect → Score → Calibrate → Optimize → Protect → Execute → Measure**
 
-The ML model recommends. The policy engine decides whether execution is permitted.
-
-**2. Probability Calibration**
-
-Raw probabilities are calibrated before being used for economic decisioning.
-
-**3. Expected-Value Optimization**
-
-Recovery is ranked by expected net value rather than probability alone.
-
-**4. Counterfactual Strategy Comparison**
-
-Alternative recovery strategies can be compared before execution.
-
-**5. Explicit "Do Not Act" Logic**
-
-Permanent declines, exhausted retry budgets, duplicate risk, negative EV, and other policy conditions can block execution.
-
-**6. Measurable Safety**
-
-The benchmark evaluates economic recovery alongside duplicate-charge and unsafe-action outcomes.
+The architecture deliberately separates probabilistic intelligence from deterministic financial controls.
 
 ---
 
-# 🧠 Decision Architecture
+# The Problem
+
+Failed payments create revenue leakage, but recovery attempts are not free.
+
+A recovery action can have:
+
+- a probability of success,
+- a recoverable amount,
+- an execution cost,
+- customer-experience implications,
+- duplicate-charge risk,
+- retry limits,
+- payment-state constraints,
+- and policy restrictions.
+
+A simple recovery system might do this:
 
 ```text
-                    PAYMENT EVENT
-                         │
-                         ▼
-                ┌─────────────────┐
-                │ Revenue Risk    │
-                │ Engine          │
-                └────────┬────────┘
-                         ▼
-                ┌─────────────────┐
-                │ Recovery ML     │
-                │ Raw Probability │
-                └────────┬────────┘
-                         ▼
-                ┌─────────────────┐
-                │ Calibration     │
-                │ Isotonic / PAVA │
-                └────────┬────────┘
-                         ▼
-                ┌─────────────────┐
-                │ Expected Net    │
-                │ Value           │
-                └────────┬────────┘
-                         ▼
-                ┌─────────────────┐
-                │ Strategy Engine │
-                └────────┬────────┘
-                         ▼
-                ┌─────────────────┐
-                │ Safety Policies │
-                └────────┬────────┘
-                         │
-                  ┌──────┴──────┐
-                  ▼             ▼
-                BLOCK         ALLOW
-                  │             │
-                  ▼             ▼
-                AUDIT        EXECUTE
-                                │
-                                ▼
-                           OUTCOME
+Payment Failed
+      ↓
+Retry
+      ↓
+Retry Again
+      ↓
+Notify Customer
+```
+
+That can increase recovery attempts without necessarily maximizing **net recovered value**.
+
+PulsePay asks a more useful question:
+
+> **Which action should be taken for this payment, given its probability, economics, alternatives, and safety constraints?**
+
+---
+
+# Why Blind Retry Is Not Enough
+
+Blind retry assumes that more attempts are a reasonable proxy for more recovery.
+
+PulsePay treats recovery differently:
+
+| Blind Retry | PulsePay |
+|---|---|
+| Retry failed payments | Evaluate recoverability |
+| Fixed or repetitive action | Compare candidate strategies |
+| Raw confidence | Calibrated probability |
+| Retry-centric | Economic-value-centric |
+| Action after prediction | Policy authorization after prediction |
+| Limited controls | Explicit deterministic safety gates |
+| More attempts | Bounded execution |
+| Measure activity | Measure recovery outcomes |
+
+The benchmark is therefore not designed merely to show that PulsePay can execute retries.
+
+It asks whether a decision-oriented approach can produce **more net value while preventing unsafe actions**.
+
+---
+
+# How It Works
+
+PulsePay's core pipeline is:
+
+```text
+┌──────────────────────────┐
+│     Payment Failure      │
+└────────────┬─────────────┘
+             ↓
+┌──────────────────────────┐
+│ Revenue Risk Detection   │
+└────────────┬─────────────┘
+             ↓
+┌──────────────────────────┐
+│ Raw ML Recovery          │
+│ Probability              │
+└────────────┬─────────────┘
+             ↓
+┌──────────────────────────┐
+│ Probability Calibration  │
+└────────────┬─────────────┘
+             ↓
+┌──────────────────────────┐
+│ Expected Net Value       │
+└────────────┬─────────────┘
+             ↓
+┌──────────────────────────┐
+│ Strategy Ranking &       │
+│ Counterfactual Analysis  │
+└────────────┬─────────────┘
+             ↓
+      ┌──────┴──────┐
+      ↓             ↓
+┌───────────┐  ┌────────────┐
+│  Safety   │  │   Block    │
+│   Gates   │  │  + Audit   │
+└─────┬─────┘  └────────────┘
+      ↓
+┌──────────────────────────┐
+│ Bounded Execution        │
+└────────────┬─────────────┘
+             ↓
+┌──────────────────────────┐
+│ Outcome Measurement      │
+└──────────────────────────┘
+```
+
+The key design boundary is:
+
+```text
+Probabilistic layer
+        ↓
+"How likely / how valuable?"
+        ↓
+Deterministic policy layer
+        ↓
+"Is this action allowed?"
+        ↓
+Execution layer
 ```
 
 ---
 
-# 🤖 AI / ML Layer
+# Core Intelligence
 
-PulsePay uses ML for **probabilistic prediction**, not unrestricted execution.
+## Revenue Risk Detection
 
-The model estimates the probability that a recovery intervention will succeed based on payment and contextual signals.
+PulsePay scans payment telemetry to identify opportunities where failed payments may represent recoverable revenue.
 
-```text
-Payment Features
-      ↓
-Recovery Model
-      ↓
-Raw Probability
-      ↓
-Calibration
-      ↓
-Calibrated Probability
-```
+An opportunity can carry:
 
-The calibrated probability becomes an input to the economic decision layer.
+- payment ID,
+- amount,
+- failure information,
+- payment context,
+- recovery probability,
+- calibrated probability,
+- expected value,
+- recommended strategy,
+- policy state,
+- evidence,
+- execution state.
 
-This creates a clean separation:
-
-| Layer          | Responsibility                  |
-| -------------- | ------------------------------- |
-| ML             | Estimate recovery probability   |
-| Calibration    | Improve probability reliability |
-| Economics      | Calculate expected value        |
-| Strategy       | Select intervention             |
-| Policy         | Authorize or block              |
-| Executor       | Perform bounded action          |
-| Outcome Engine | Measure result                  |
+The detection layer feeds the downstream decision engines rather than directly executing actions.
 
 ---
 
-# 📐 Probability Calibration
+## Recovery Scoring
 
-A model can be predictive without producing reliable probabilities.
+The recovery scoring layer estimates the likelihood that an opportunity can be recovered.
 
-For example, a prediction of `80%` should represent a population that actually recovers at approximately that rate when the model is well calibrated.
-
-PulsePay therefore calibrates raw probabilities before using them for downstream decisions.
-
-### Active method
-
-**Isotonic Regression / PAVA**
-
-### Authoritative benchmark
+The important distinction is between:
 
 ```text
-Total Records      : 10,000
-Training Records   : 7,000
-Evaluation Records : 3,000
-Seed               : 20260826
-```
-
-### Results
-
-| Metric      | Before |      After |
-| ----------- | -----: | ---------: |
-| ECE         |  33.7% |  **14.8%** |
-| Brier Score | 0.2515 | **0.1483** |
-
-Lower values indicate improved probability reliability.
-
----
-
-# 💰 Expected Net Value
-
-Probability alone is not enough for financial recovery.
-
-PulsePay estimates the economic value of an action.
-
-Conceptually:
-
-```text
-Expected Recovery
-=
-Calibrated Probability
-×
-Recoverable Amount
+Raw ML probability
 ```
 
 and:
 
 ```text
-Expected Net Value
-=
-Expected Recovery
+Calibrated probability
+```
+
+The raw score is useful for ranking, but a probability should also be evaluated for how well it corresponds to observed outcomes.
+
+---
+
+## Probability Calibration
+
+PulsePay's active benchmark calibration method is:
+
+> **Isotonic Regression / PAVA**
+
+Conceptually:
+
+```text
+Raw Model Output
+       ↓
+Calibration Function
+       ↓
+Calibrated Probability
+```
+
+This matters because a model can be good at ranking payments while still being overconfident or underconfident.
+
+PulsePay evaluates calibration using:
+
+- Expected Calibration Error (ECE)
+- Brier Score
+
+The benchmark uses an out-of-sample evaluation set.
+
+---
+
+## Expected Value
+
+Recovery probability alone does not determine the best action.
+
+PulsePay combines probability with economic context to estimate expected net value.
+
+Conceptually:
+
+```text
+Expected Value
+≈
+Calibrated Probability
+×
+Recoverable Amount
 −
-Recovery Costs
-−
-Relevant Risk Costs
+Relevant Action Costs
 ```
 
-This prevents the system from prioritizing an action simply because it has a high predicted probability.
+The actual decision is handled by the recovery economic/strategy layer.
 
-The objective becomes:
+This creates an important behavior:
 
-> **Maximize safe economic recovery, not retry volume.**
+> A lower-probability action can be preferable if it produces higher expected net value.
+
+And the reverse is also true:
+
+> A high-probability action can still be rejected if its economics or policy constraints are unfavorable.
 
 ---
 
-# 🧩 Strategy Selection
+## Strategy Selection
 
-PulsePay can evaluate multiple recovery strategies.
+PulsePay evaluates candidate recovery strategies rather than assuming retry is always the answer.
 
-Examples include:
-
-* Automated Gateway Retry
-* Customer Recovery Link
-* Alternative Recovery Intervention
-* Halt Recovery
-
-Each strategy can be evaluated using:
-
-* calibrated probability
-* expected value
-* cost
-* safety status
-* policy eligibility
-
-Example:
+A decision can be represented as:
 
 ```text
-Strategy                  Expected Value      Status
-─────────────────────────────────────────────────────
-Gateway Retry                ₹24,497           SELECTED
-Recovery Link                ₹20,744           NOT SELECTED
-Halt Recovery                     ₹0           BLOCKED
+Strategy A
+High probability
+Positive EV
+Allowed
+      │
+      ├─────────────── Selected
+      │
+Strategy B
+Moderate probability
+Lower EV
+Allowed
+      │
+      └─────────────── Not selected
+
+Strategy C
+Negative / zero EV
+Blocked
 ```
 
-The values depend on the synthetic opportunity being investigated.
+The strategy engine provides the economic comparison.
 
-The important concept is:
-
-> **PulsePay compares possible actions instead of assuming retry is always optimal.**
+The policy engine retains final authorization authority.
 
 ---
 
-# 🛡️ Deterministic Safety Layer
+# Safety and Execution
 
-The ML model does not have unrestricted execution authority.
+Financial automation requires stronger controls than a typical recommendation system.
 
-Before an action is executed, PulsePay evaluates deterministic safety policies.
+PulsePay therefore applies deterministic safety checks before execution.
 
-### Permanent Decline Protection
+## Duplicate Charge Protection
 
-Blocks recovery attempts against permanently unrecoverable states.
+The execution path prevents recovery workflows from blindly creating duplicate charges.
 
-### Duplicate Charge Protection
+In the authoritative benchmark:
 
-Prevents actions that could create duplicate charging conditions.
-
-### Retry Budget
-
-Limits repeated recovery attempts.
-
-### Financial Viability
-
-Blocks actions when expected value is not economically justified.
-
-### Idempotency
-
-Prevents accidental repeated execution.
-
-### Fraud Risk Gate
-
-Can block recovery where risk conditions make automated recovery inappropriate.
-
-The resulting flow is:
-
-```text
-ML Recommendation
-       ↓
-Economic Evaluation
-       ↓
-Safety Policy
-       ↓
-ALLOW / BLOCK
-```
+- PulsePay: **0 duplicate charges**
+- Blind retry: **583 duplicate charges**
 
 ---
 
-# 🚫 Knowing When Not to Act
+## Retry Budget
 
-A high model probability does not automatically mean "execute."
+Recovery attempts are bounded.
 
-Example:
-
-```text
-Recovery Probability = 97%
-Permanent Decline = TRUE
-```
-
-Result:
-
-```text
-BLOCKED
-Reason: Permanent Decline Protection
-```
-
-Another:
-
-```text
-Recovery Probability = 91%
-Expected Value = Negative
-```
-
-Result:
-
-```text
-BLOCKED
-Reason: Financial Viability Gate
-```
-
-Another:
-
-```text
-Retry Count = Maximum
-```
-
-Result:
-
-```text
-BLOCKED
-Reason: Retry Budget
-```
-
-This creates a key PulsePay principle:
-
-> **A good recovery system must know when not to recover.**
+A payment should not remain in an uncontrolled retry loop simply because the model continues to produce a favorable score.
 
 ---
 
-# 🔎 Evidence-Driven Explainability
+## Permanent Decline Protection
 
-PulsePay provides a decision record for recovery opportunities.
+Certain payment states should not be repeatedly retried.
 
-Instead of relying on generic AI explanations, the system exposes the evidence and calculations behind the recommendation.
+The deterministic policy layer can block such actions before execution.
 
-A Payment Investigation can include:
+---
 
-### Payment Details
+## Financial Viability Gate
 
-* Payment ID
-* Amount
-* Status
-* Failure information
-* Relevant context
+If an action is not economically viable, it should not be executed solely because its probability is high.
 
-### ML Decision
-
-* Raw probability
-* Calibrated probability
-
-### Economic Decision
-
-* Expected recovery
-* Expected net value
-
-### Strategy Decision
-
-* Recommended strategy
-* Alternative strategies
-* Selection status
-
-### Safety Decision
-
-* Safety checks
-* Blocked conditions
-* Policy reasons
-
-### Execution
-
-* Action status
-* Execution history
-* Outcome
-
-The operator can therefore trace:
+Conceptually:
 
 ```text
-WHAT happened?
-      ↓
-WHAT evidence was available?
-      ↓
-WHAT did the model predict?
-      ↓
-WHAT was the expected value?
-      ↓
-WHICH strategy was selected?
-      ↓
-WAS execution allowed?
-      ↓
-WHAT actually happened?
+Expected Value ≤ 0
+        ↓
+      BLOCK
 ```
 
 ---
 
-# 🔬 Counterfactual Strategy Analysis
+## Idempotency
 
-PulsePay can expose alternative strategies instead of presenting one opaque recommendation.
-
-For example:
-
-```text
-                  Probability     Expected Value
-
-Gateway Retry         92%             ₹24,497
-Recovery Link         78%             ₹20,744
-Halt Recovery          —                  ₹0
-```
-
-This allows an operator to ask:
-
-> **"Why this strategy instead of the alternatives?"**
-
-The backend strategy engine remains the source of truth for the comparison.
+Recovery execution includes controls intended to prevent repeated execution of the same action.
 
 ---
 
-# ⚙️ Recovery Mission
+## Bounded Execution
 
-**Recovery Mission** turns individual decisions into a bounded operational workflow.
+Recovery missions enforce server-side execution limits.
 
-A mission can:
+The frontend cannot simply decide to execute an unlimited number of actions.
 
-1. identify eligible opportunities
-2. evaluate recovery decisions
-3. apply safety policies
-4. execute permitted actions
-5. record blocked actions
-6. record successful and failed outcomes
-7. calculate mission-level results
-8. expose an audit trail
-
-The workflow follows:
+This makes the automation boundary explicit:
 
 ```text
-Scan
- ↓
-Analyze
- ↓
-Score
- ↓
-Calibrate
- ↓
-Optimize
- ↓
-Protect
- ↓
-Execute
- ↓
-Measure
-```
-
-Mission execution is backend-driven rather than simulated using artificial UI progress.
-
----
-
-# 📊 Mission Results
-
-A completed Recovery Mission can expose:
-
-* Revenue at Risk
-* Expected Recovery
-* Actual Recovery
-* Actions Attempted
-* Successful Actions
-* Blocked Actions
-* Unsafe Actions Prevented
-* Opportunities Analyzed
-* Action Breakdown
-* Execution Audit
-
-PulsePay separates:
-
-```text
-Expected Recovery
-```
-
-from:
-
-```text
-Actual Recovery
-```
-
-so operators can evaluate prediction quality against real execution outcomes.
-
----
-
-# 📈 Outcome Measurement
-
-PulsePay does not stop after recommending or executing an action.
-
-The complete lifecycle is:
-
-```text
-Opportunity
-     ↓
-Prediction
-     ↓
 Decision
-     ↓
+   ↓
+Policy
+   ↓
+Server-side limit
+   ↓
 Execution
-     ↓
+   ↓
+Audit
+```
+
+---
+
+# AI vs Deterministic Control
+
+PulsePay intentionally does not give a generative AI model unrestricted authority over financial execution.
+
+| Layer | Purpose | Control |
+|---|---|---|
+| Recovery scoring | Estimate probability | Probabilistic |
+| Calibration | Improve probability reliability | Statistical |
+| Expected value | Estimate economic value | Economic model |
+| Strategy engine | Compare actions | Optimization |
+| Permanent-decline protection | Prevent prohibited action | Deterministic |
+| Duplicate protection | Prevent duplicate charge | Deterministic |
+| Retry budget | Limit attempts | Deterministic |
+| Financial viability | Reject negative-value action | Deterministic |
+| Idempotency | Prevent repeated execution | Deterministic |
+| Evidence grounding | Keep explanations evidence-based | Deterministic |
+
+This is the core safety philosophy:
+
+> **The model recommends. The policy layer authorizes.**
+
+---
+
+# Explainability and Decision Trace
+
+PulsePay is designed to make the path from payment evidence to action inspectable.
+
+For an individual payment, the decision trace is:
+
+```text
+Payment
+  ↓
+Observed Telemetry
+  ↓
+Raw ML Probability
+  ↓
+Calibrated Probability
+  ↓
+Expected Value
+  ↓
+Candidate Strategies
+  ↓
+Selected Strategy
+  ↓
+Safety Checks
+  ↓
+Execution
+  ↓
 Outcome
-     ↓
-Measurement
 ```
 
-This enables measurement of:
+The explanation layer distinguishes between:
 
-* recovery precision
-* recovery recall
-* net recovery
-* net value added
-* expected vs actual recovery
-* duplicate-charge outcomes
-* blocked unsafe actions
-* successful and failed executions
+**Evidence** — observed payment/telemetry facts.
+
+**Model inference** — probabilistic output.
+
+**Economic reasoning** — expected-value calculations.
+
+**Policy decision** — deterministic allow/block result.
+
+This prevents the explanation layer from inventing unsupported reasons.
 
 ---
 
-# 📊 Authoritative Benchmark
+# Product Experience
 
-PulsePay includes a controlled synthetic benchmark against a **blind retry baseline**.
+## Revenue Center
 
-### Dataset
+The operational overview provides a concise view of:
 
-```text
-Total Records      : 10,000
-Training Records   : 7,000
-Evaluation Records : 3,000
-Seed               : 20260826
-Calibration        : Isotonic Regression / PAVA
-```
+- total recovered revenue,
+- net value added,
+- recovery precision,
+- revenue at risk,
+- eligible opportunities,
+- next best opportunity,
+- recovery performance,
+- safety and reliability.
 
-The evaluation is out-of-sample.
-
----
-
-# 🏆 Benchmark Results
-
-| Metric                   |         PulsePay |  Blind Retry |
-| ------------------------ | ---------------: | -----------: |
-| Net Recovery             | **₹1,40,64,879** | ₹1,16,19,196 |
-| Net Value Added          |   **₹24,45,683** |            — |
-| Net Lift                 |       **+21.0%** |            — |
-| Duplicate Charges        |            **0** |          583 |
-| Unsafe Actions Prevented |          **317** |            — |
-| Recovery Precision       |        **96.0%** |            — |
-| Recovery Recall          |       **100.0%** |            — |
-
-### Revenue at Risk
-
-```text
-₹1,54,92,199
-```
-
-### Estimated Recoverable Benchmark
-
-```text
-₹1,42,58,836
-```
-
-### Recovery Rate
-
-```text
-90.8%
-```
+The **Next Best Opportunity** section connects the dashboard directly to an actionable decision.
 
 ---
 
-# 💵 Economic Impact
+## Recovery Queue
 
-PulsePay generated:
+The Recovery Queue provides a prioritized operational view of recovery opportunities.
 
-```text
-₹1,40,64,879
-```
+Operators can inspect:
 
-in benchmark net recovery.
+- payment context,
+- recommended strategy,
+- expected value,
+- policy state,
+- and investigation details.
 
-Blind retry generated:
-
-```text
-₹1,16,19,196
-```
-
-Difference:
-
-```text
-₹24,45,683
-```
-
-Resulting in:
-
-```text
-+21.0% Net Lift
-```
-
-The important comparison is not simply how many attempts were made.
-
-It is:
-
-> **How much additional net value was created by intelligent recovery compared with blind retry?**
+The queue is intentionally focused on individual decisions rather than turning recovery into a bulk-action checklist.
 
 ---
 
-# 🎯 Recovery Precision & Recall
+## Payment Investigation
 
-### Precision
+Payment Investigation presents a **Payment Decision Record**.
 
-```text
-96.0%
-```
-
-This measures the quality of selected recovery opportunities under the benchmark definition.
-
-### Recall
-
-```text
-100.0%
-```
-
-This indicates that the benchmark's recoverable opportunities were retained by the recovery selection process.
-
-Together:
-
-```text
-Precision = 96.0%
-Recall    = 100.0%
-```
-
----
-
-# 🛡️ Safety Benchmark
-
-PulsePay's benchmark also evaluates safety-related outcomes.
-
-```text
-                    PulsePay      Blind Retry
-
-Duplicate Charges       0              583
-
-Unsafe Actions
-Prevented              317               —
-```
-
-This demonstrates why maximizing retry activity is not an adequate objective.
-
-The goal is:
-
-> **Safe, economically meaningful recovery.**
-
----
-
-# 🧪 Live Operations vs Benchmark
-
-PulsePay intentionally separates live synthetic operations from benchmark evaluation.
-
-### Live Synthetic Operations
-
-The Revenue Center and Recovery Mission use the current synthetic operational database.
-
-Their values can change after:
-
-* reseeding
-* executing recovery actions
-* running missions
-* changing opportunity state
-* recording outcomes
-
-### Authoritative Benchmark
-
-The benchmark represents the controlled:
-
-```text
-10,000-record
-7,000 / 3,000
-out-of-sample
-```
-
-evaluation.
-
-Therefore, live dashboard metrics are **not expected to always match benchmark metrics**.
-
-This separation keeps the demonstration honest.
-
----
-
-# 🖥️ Product Interface
-
-PulsePay is designed as a fintech operations console rather than a generic AI chatbot.
-
-The interface focuses on:
-
-* financial value
-* recovery opportunities
-* evidence
-* decision quality
-* safety
-* execution
-* outcomes
-
-### Main Areas
-
-```text
-Revenue Center
-      ↓
-Recovery Queue
-      ↓
-Payment Investigation
-      ↓
-Recovery Mission
-      ↓
-Experiments & Benchmark
-      ↓
-Operations Copilot
-```
-
----
-
-# 📊 Revenue Center
-
-The Revenue Center provides the operational overview.
-
-It surfaces:
-
-* Total Recovered
-* Net Value Added
-* Recovery Precision
-* Revenue at Risk
-* Action Eligibility
-* Next Best Opportunity
-* Recovery Performance
-* Safety & Reliability
-
-The central question is:
-
-> **What is the highest-value safe recovery opportunity available right now?**
-
----
-
-# 📋 Recovery Queue
-
-The Recovery Queue provides the actionable recovery opportunities.
-
-Operators can:
-
-* inspect opportunities
-* search payments
-* filter recovery states
-* open investigations
-* review decision evidence
-* execute permitted synthetic actions
-
-The queue is designed around individual decision quality rather than becoming a generic bulk administration screen.
-
----
-
-# 🔎 Payment Investigation
-
-Payment Investigation presents a complete **Payment Decision Record**.
+It brings together:
 
 ```text
 Payment Details
       ↓
+Telemetry
+      ↓
 PulsePay Decision
       ↓
-Raw ML Probability
+Raw Probability
       ↓
 Calibrated Probability
       ↓
 Expected Recovery Value
       ↓
 Recommended Strategy
-      ↓
-Evidence
       ↓
 Alternative Strategies
       ↓
@@ -882,133 +627,174 @@ Safety Checks
 Execution History
 ```
 
-This provides a traceable explanation of the recovery decision.
+This is the primary surface for understanding *why* PulsePay made a particular decision.
 
 ---
 
-# 🤝 Operations Copilot
+## Recovery Mission
 
-PulsePay includes an Operations Copilot focused on the existing recovery workflow.
+Recovery Mission closes the loop between analysis and execution.
 
-It can help operators:
+A mission:
 
-* understand recovery decisions
-* interpret operational metrics
-* summarize recovery activity
-* inspect available context
-* navigate PulsePay capabilities
+1. scans available opportunities,
+2. evaluates them,
+3. applies strategy logic,
+4. applies safety gates,
+5. executes authorized actions,
+6. records outcomes,
+7. summarizes economic performance.
 
-The Copilot is not the authority for financial execution.
+Mission reporting can include:
 
-Backend policies remain authoritative.
+- revenue at risk,
+- expected recovery,
+- actual recovery,
+- actions attempted,
+- successful actions,
+- blocked actions,
+- unsafe actions prevented,
+- action-level outcomes.
 
----
-
-# 🔐 Authentication & Security
-
-PulsePay includes protected application functionality with:
-
-* user registration
-* login
-* authenticated routes
-* password hashing
-* token-based authentication
-* authenticated API requests
-* environment-based secrets
-
-Passwords are not stored as plaintext.
-
-Sensitive credentials should be stored in environment variables and excluded from source control.
+The mission uses backend workflow state rather than artificial progress timers.
 
 ---
 
-# 🏗️ System Architecture
+## Experiments and Benchmark
+
+The benchmark surface is intentionally separate from operational demo data.
+
+It provides visibility into:
+
+- benchmark configuration,
+- methodology,
+- baseline comparison,
+- economic performance,
+- recovery metrics,
+- calibration,
+- safety results.
+
+This makes the evaluation easier to inspect and reproduce.
+
+---
+
+## Operations Copilot
+
+Operations Copilot provides a natural-language operational layer over PulsePay's existing capabilities.
+
+It is intended to help operators inspect recovery information and understand system state without replacing the deterministic decision pipeline.
+
+The copilot does not become the authority for financial execution.
+
+---
+
+# Architecture
+
+PulsePay uses a full-stack architecture with a dedicated ML service.
 
 ```text
-                    ┌─────────────────────┐
-                    │    React + Vite     │
-                    │ Operations Console  │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │  Node + Express API │
-                    └──────────┬──────────┘
-                               │
-             ┌─────────────────┼─────────────────┐
-             ▼                 ▼                 ▼
-      ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
-      │ Risk & ML   │   │ Strategy &  │   │    Auth     │
-      │ Services    │   │ Recovery    │   │  Services   │
-      └──────┬──────┘   └──────┬──────┘   └─────────────┘
-             │                 │
-             └────────┬────────┘
-                      ▼
-              ┌───────────────┐
-              │ Safety +      │
-              │ Execution     │
-              └───────┬───────┘
-                      ▼
-              ┌───────────────┐
-              │   MongoDB     │
-              │ Data + Audit  │
-              └───────────────┘
-                      ▲
-                      │
-              ┌───────┴───────┐
-              │ FastAPI ML    │
-              │ Service       │
-              └───────────────┘
+                         ┌─────────────────────┐
+                         │    React / Vite     │
+                         │   Operations UI     │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │   Node / Express    │
+                         │   API + Controllers │
+                         └──────┬────────┬─────┘
+                                │        │
+                    ┌───────────┘        └────────────┐
+                    ▼                                 ▼
+          ┌──────────────────┐              ┌──────────────────┐
+          │     MongoDB      │              │   FastAPI / ML   │
+          │ Payments         │              │ Scoring / ML     │
+          │ Opportunities    │              │ Inference        │
+          │ Actions / Audit  │              └──────────────────┘
+          └──────────────────┘
 ```
 
----
-
-# 🧱 Technology Stack
-
-| Layer          | Technology                 |
-| -------------- | -------------------------- |
-| Frontend       | React + Vite               |
-| Backend        | Node.js + Express          |
-| Database       | MongoDB + Mongoose         |
-| ML Service     | Python + FastAPI           |
-| ML             | scikit-learn               |
-| Authentication | Token-based authentication |
-| API            | REST                       |
-| Data           | Synthetic / reproducible   |
-
----
-
-# 🧠 Backend Service Flow
-
-The recovery system is divided into domain services:
+The backend separates:
 
 ```text
-Revenue Risk Engine
-        ↓
-Recovery Scoring Engine
-        ↓
-Calibration
-        ↓
+Controllers
+    ↓
+Domain Services
+    ↓
+Decision Engines
+    ↓
+Policy / Safety
+    ↓
+Execution
+    ↓
+Outcome
+    ↓
+Persistence
+```
+
+This prevents critical decision logic from being buried inside HTTP controllers.
+
+---
+
+# Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React |
+| Build | Vite |
+| Backend | Node.js + Express |
+| Database | MongoDB |
+| ML service | FastAPI |
+| ML / calibration | Python + scikit-learn |
+| Authentication | JWT + bcrypt |
+| Testing | Jest / backend test suites |
+| Styling | Custom CSS design system |
+
+---
+
+# ML Architecture
+
+The ML and decisioning flow is intentionally modular.
+
+```text
+Payment Features
+      ↓
+Revenue Risk / Recovery Scoring
+      ↓
+Raw Probability
+      ↓
+Isotonic Calibration
+      ↓
+Calibrated Probability
+      ↓
 Expected Value
-        ↓
-Recovery Strategy Engine
-        ↓
-Recovery Policy Engine
-        ↓
-Recovery Executor
-        ↓
-Recovery Outcome Engine
-        ↓
-Benchmark / Evaluation
+      ↓
+Strategy Evaluation
+      ↓
+Safety Policy
 ```
 
-This keeps prediction, decisioning, policy enforcement, execution, and evaluation separate.
+The probabilistic stages answer:
+
+> **What is likely to happen?**
+
+The economic layer answers:
+
+> **What is likely to be valuable?**
+
+The policy layer answers:
+
+> **What is allowed to happen?**
+
+The execution layer answers:
+
+> **What actually happened?**
 
 ---
 
-# 🗃️ Core Data Concepts
+# Data Model
 
-Key domain entities include:
+Major operational entities include:
 
 ```text
 User
@@ -1016,125 +802,370 @@ Payment
 RecoveryOpportunity
 RecoveryAction
 RecoveryCampaign
-RecoveryOutcome
 ```
 
-Supporting services handle:
+Supporting services manage:
 
-* telemetry
-* investigation
-* incidents
-* calibration
-* benchmark evaluation
-* recovery missions
-* audit information
+- revenue-risk detection,
+- scoring,
+- calibration,
+- strategy selection,
+- policy evaluation,
+- simulation,
+- execution,
+- outcomes,
+- benchmarking,
+- and evaluation.
+
+The architecture keeps prediction, decisioning, authorization, execution, and measurement as separate concerns.
 
 ---
 
-# 🔁 End-to-End Data Flow
+# Authentication and Security
+
+PulsePay includes application authentication for its operational interface.
+
+Authentication supports:
+
+- registration,
+- login,
+- password hashing,
+- JWT-based authentication,
+- protected API requests,
+- protected operational routes.
+
+Passwords are hashed with bcrypt rather than stored as plaintext.
+
+Secrets such as JWT configuration are supplied through environment variables.
+
+The project uses synthetic data and does not require real payment credentials.
+
+---
+
+# Benchmark
+
+The authoritative benchmark contains:
 
 ```text
-Payment Event
-     ↓
-Failure Context
-     ↓
-Revenue Risk Detection
-     ↓
-Recovery Opportunity
-     ↓
-ML Scoring
-     ↓
-Probability Calibration
-     ↓
-Expected Value
-     ↓
-Strategy Selection
-     ↓
-Safety Policies
-     ↓
-Bounded Execution
-     ↓
-Outcome
-     ↓
-Measurement
+10,000 synthetic records
+
+Training:    7,000
+Evaluation:  3,000
+
+Seed:        20260826
 ```
 
----
+The evaluation is out-of-sample relative to the training split.
 
-# 🌱 Synthetic Demo Environment
-
-PulsePay uses synthetic payment data for demonstration and evaluation.
-
-This enables realistic scenarios without requiring real customer financial information.
-
-The demo environment can represent:
-
-* failed payments
-* recoverable failures
-* blocked cases
-* retry limits
-* duplicate-risk scenarios
-* successful recoveries
-* failed recoveries
-* historical actions
-
-No real customer payment data is required.
+The benchmark evaluates both **economic performance** and **decision quality**.
 
 ---
 
-# ⚙️ Installation
+# Benchmark Methodology
+
+The benchmark measures:
+
+### Economic performance
+- net recovery,
+- incremental net value,
+- net lift.
+
+### Recovery quality
+- precision,
+- recall.
+
+### Probability quality
+- Expected Calibration Error,
+- Brier Score.
+
+### Safety
+- duplicate charges,
+- unsafe actions prevented.
+
+The active calibration benchmark uses:
+
+> **Isotonic Regression / PAVA**
+
+The benchmark should be interpreted as a controlled synthetic evaluation of the architecture, not as a guarantee of production outcomes.
+
+---
+
+# Benchmark Results
+
+## Economic
+
+| Metric | PulsePay | Blind Retry |
+|---|---:|---:|
+| Net recovery | **₹1,40,64,879** | ₹1,16,19,196 |
+| Incremental net value | **₹24,45,683** | — |
+| Net lift | **+21.0%** | — |
+
+## Recovery quality
+
+| Metric | PulsePay |
+|---|---:|
+| Recovery precision | **96.0%** |
+| Recovery recall | **100.0%** |
+
+## Safety
+
+| Metric | PulsePay | Blind Retry |
+|---|---:|---:|
+| Duplicate charges | **0** | 583 |
+| Unsafe actions prevented | **317** | — |
+
+---
+
+# Economic Results
+
+The benchmark's central comparison is:
+
+```text
+Blind Retry
+₹1,16,19,196
+       │
+       │ +₹24,45,683
+       ▼
+PulsePay
+₹1,40,64,879
+```
+
+That corresponds to:
+
+> **+21.0% net lift**
+
+The important metric is not the number of recovery attempts.
+
+It is:
+
+> **incremental net recovery under safety constraints.**
+
+---
+
+# Calibration Results
+
+| Metric | Before | After |
+|---|---:|---:|
+| ECE | 0.337 | **0.148** |
+| Brier Score | 0.2515 | **0.1483** |
+
+ECE improved from:
+
+```text
+33.7%
+  ↓
+14.8%
+```
+
+This is why PulsePay does not simply display raw model confidence as if it were automatically reliable.
+
+Calibration is treated as a measurable part of the decision pipeline.
+
+---
+
+# Safety Results
+
+The authoritative benchmark recorded:
+
+```text
+PulsePay duplicate charges:       0
+Blind retry duplicate charges:  583
+
+Unsafe actions prevented:       317
+```
+
+This supports the design principle that:
+
+> **More recovery attempts are not automatically better recovery.**
+
+A recovery system must also control the actions it is willing to take.
+
+---
+
+# Live Operations vs Benchmark
+
+PulsePay maintains a deliberate separation between its live synthetic operational environment and the authoritative benchmark.
+
+### Live synthetic operations
+
+Used to demonstrate:
+
+- opportunity scanning,
+- investigation,
+- strategy evaluation,
+- recovery missions,
+- synthetic execution,
+- outcome recording.
+
+### Authoritative benchmark
+
+Used to report:
+
+- 10,000-record dataset,
+- 7,000 / 3,000 split,
+- economic results,
+- precision and recall,
+- calibration,
+- safety metrics.
+
+This prevents changing demo state from being confused with fixed benchmark results.
+
+---
+
+# Demo
+
+A clean demonstration follows the decision itself.
+
+## 1. Sign in
+
+Use the normal authentication flow.
+
+## 2. Revenue Center
+
+Start with:
+
+- Revenue at Risk
+- Recovery Performance
+- Next Best Opportunity
+- Net Value Added
+- Safety metrics
+
+Introduce the thesis:
+
+> **"PulsePay doesn't optimize for retry volume. It optimizes for safe expected recovery value."**
+
+## 3. Investigate a payment
+
+Open an opportunity and show:
+
+```text
+Raw ML Probability
+        ↓
+Calibrated Probability
+        ↓
+Expected Recovery Value
+        ↓
+Recommended Strategy
+        ↓
+Safety Checks
+```
+
+## 4. Compare strategies
+
+Show the alternative strategy analysis.
+
+Explain that PulsePay is choosing between candidate actions rather than automatically retrying.
+
+## 5. Execute a synthetic recovery
+
+Execute an authorized action and show the resulting outcome/history.
+
+## 6. Run a Recovery Mission
+
+Show:
+
+- revenue at risk,
+- expected recovery,
+- actual recovery,
+- actions attempted,
+- successful actions,
+- blocked actions,
+- unsafe actions prevented.
+
+## 7. Finish with the benchmark
+
+Close on:
+
+```text
+₹1.41 Cr net recovery
+₹24.45 lakh incremental value
++21.0% net lift
+0 duplicate charges
+317 unsafe actions prevented
+96% precision
+100% recall
+```
+
+Then:
+
+> **"We don't measure success by retry volume. We measure incremental net recovery under safety constraints."**
+
+---
+
+# Setup
 
 ## Prerequisites
 
 Install:
 
-* Node.js
-* npm
-* MongoDB
-* Python
+- Node.js
+- npm
+- MongoDB
+- Python 3.x
 
----
-
-## Clone
+Check Node:
 
 ```bash
-git clone https://github.com/Shruti070107/PulsePay.git
-cd PulsePay
+node --version
+npm --version
 ```
+
+Check Python:
+
+```bash
+python --version
+```
+
+The default development database is:
+
+```text
+mongodb://127.0.0.1:27017/pulsepay
+```
+
+Make sure MongoDB is running before starting the backend.
 
 ---
 
-## Backend
+# Environment Configuration
+
+Configure the backend environment with the required values.
+
+Example development configuration:
+
+```env
+PORT=5000
+MONGODB_URI=mongodb://127.0.0.1:27017/pulsepay
+JWT_SECRET=your-development-secret
+```
+
+If external AI integration is enabled, configure the relevant provider key through environment variables.
+
+Do not commit secrets to Git.
+
+---
+
+# Running PulsePay
+
+The repository contains independent frontend and backend applications.
+
+## Terminal 1 — Backend
 
 ```bash
 cd server
 npm install
+npm run seed
 npm run dev
 ```
 
-Development backend:
+Backend:
 
 ```text
 http://localhost:5000
 ```
 
----
+The seed command prepares the synthetic operational environment for the demo.
 
-## Seed Demo Data
-
-From `server`:
-
-```bash
-npm run seed
-```
-
-This prepares the synthetic operational environment used by the dashboard and recovery workflows.
-
----
-
-## Frontend
-
-Open another terminal:
+## Terminal 2 — Frontend
 
 ```bash
 cd client
@@ -1148,358 +1179,325 @@ Frontend:
 http://localhost:5173
 ```
 
----
-
-# 🧪 Testing
-
-PulsePay includes automated backend coverage for the major system layers.
-
-Validated areas include:
-
-```text
-Authentication
-State Engine
-Incident Engine
-AI Investigator
-Full Recovery Pipeline
-Evidence Engine
-Data Lab
-Upgrade Services
-Lab Services
-Revenue Recovery
-Recovery Benchmark
-Recovery Calibration
-```
-
-The frontend production build is also validated separately.
+Open the frontend URL in your browser.
 
 ---
 
-# 🎬 Recommended Demo
+# Testing
 
-For a short buildathon presentation:
+## Backend
 
-### 1. Revenue Center
-
-Start with:
-
-* Revenue at Risk
-* Net Value Added
-* Recovery Precision
-* Next Best Opportunity
-* Safety metrics
-
-Explain:
-
-> "PulsePay does not retry everything. It prioritizes safe, economically valuable recovery."
-
-### 2. Payment Investigation
-
-Open a payment and show:
-
-```text
-Raw Probability
-      ↓
-Calibrated Probability
-      ↓
-Expected Value
-      ↓
-Strategy
-      ↓
-Safety
+```bash
+cd server
+npm test
 ```
 
-### 3. Counterfactuals
+The test suite covers major areas including:
 
-Show why the selected strategy beat the alternatives.
+- authentication,
+- state handling,
+- incident intelligence,
+- evidence processing,
+- recovery workflows,
+- scoring,
+- strategy selection,
+- execution,
+- benchmark evaluation,
+- calibration,
+- simulation/lab services.
 
-### 4. Execute
+## Frontend build
 
-Run the synthetic recovery action and show the resulting outcome.
+```bash
+cd client
+npm run build
+```
 
-### 5. Recovery Mission
+The production build should complete successfully.
 
-Run a bounded mission and show:
+---
 
-* opportunities analyzed
-* actions attempted
-* successful actions
-* blocked actions
-* actual recovery
-
-### 6. Benchmark
-
-Finish with:
+# Project Structure
 
 ```text
-₹1.41 Cr Net Recovery
-+21.0% Net Lift
-0 Duplicate Charges
-317 Unsafe Actions Prevented
-96.0% Precision
-100.0% Recall
+PulsePay/
+│
+├── client/
+│   └── src/
+│       ├── api/
+│       ├── components/
+│       ├── pages/
+│       ├── App.jsx
+│       └── index.css
+│
+├── server/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   │   ├── recovery/
+│   │   ├── benchmark/
+│   │   ├── calibration/
+│   │   └── ...
+│   ├── tests/
+│   ├── seed.js
+│   └── package.json
+│
+└── README.md
 ```
 
 ---
 
-# 🛠️ Engineering Principles
+# Engineering Principles
 
-### Backend Owns Decisions
+### 1. Prediction is not authorization
 
-The frontend displays backend decisions rather than inventing them.
+A model score should not automatically become permission to execute a financial action.
 
-### AI Does Not Own Safety
+### 2. Optimize value, not activity
 
-ML produces probabilities; deterministic policies control execution.
+A higher retry count is not inherently better.
 
-### No Fake Execution
+### 3. Measure uncertainty
 
-Mission results are based on backend processing rather than artificial progress.
+Probability calibration is evaluated rather than assumed.
 
-### No Fabricated Metrics
+### 4. Keep critical safety deterministic
 
-Benchmark numbers come from the controlled evaluation.
+Financial constraints should remain enforceable independently of generative model behavior.
 
-### Evidence-Driven Explanations
+### 5. Make decisions auditable
 
-Missing evidence should be reported as unavailable rather than invented.
+The path from evidence to outcome should be inspectable.
 
-### Bounded Automation
+### 6. Bound automation
 
-Recovery workflows operate within explicit limits.
+Automated workflows should have explicit server-side limits.
 
-### Idempotent Execution
+### 7. Measure outcomes
 
-Repeated requests should not accidentally create duplicate actions.
+A recovery strategy should ultimately be judged by observed economic results.
 
 ---
 
-# 🚨 Failure Handling
+# Limitations
 
-PulsePay distinguishes between operational states such as:
+PulsePay is a controlled engineering prototype and synthetic benchmark, not a production payment-recovery platform.
+
+## Synthetic data
+
+The benchmark uses synthetic records.
+
+Therefore, benchmark performance does not establish production performance.
+
+A production deployment would require validation against real merchant-specific payment distributions.
+
+## Distribution shift
+
+Payment behavior can change across:
+
+- merchants,
+- countries,
+- payment methods,
+- issuers,
+- gateways,
+- customer cohorts,
+- subscription types.
+
+Production systems would need continuous monitoring.
+
+## Calibration drift
+
+A calibrated model can become miscalibrated when the underlying population changes.
+
+A production system would need:
+
+- calibration monitoring,
+- drift detection,
+- periodic recalibration,
+- cohort-level evaluation,
+- model versioning.
+
+## Payment-provider integration
+
+The current execution environment is synthetic.
+
+Production integration would require provider-specific handling for:
+
+- authentication,
+- idempotency,
+- webhooks,
+- reconciliation,
+- rate limits,
+- failure semantics,
+- compliance.
+
+---
+
+# Production Considerations
+
+A production implementation would require additional infrastructure around the core decision layer.
+
+### Provider adapters
+
+Gateway-specific behavior should be isolated behind provider adapters.
+
+### Reconciliation
+
+Executed recovery actions should be reconciled against payment-provider and ledger state.
+
+### Observability
+
+Production monitoring should include:
+
+- recovery rate,
+- incremental recovery,
+- calibration drift,
+- strategy performance,
+- blocked-action rate,
+- duplicate incidents,
+- model degradation.
+
+### Human escalation
+
+High-value, ambiguous, or exceptional cases may require human review.
+
+### Model governance
+
+Production ML should use:
+
+- versioned models,
+- feature monitoring,
+- calibration monitoring,
+- evaluation datasets,
+- rollback mechanisms,
+- audit trails.
+
+---
+
+# Roadmap
+
+## Phase 1 — Real-world validation
+
+Evaluate the decision pipeline on validated merchant/payment-provider data.
+
+## Phase 2 — Adaptive strategy learning
+
+Learn strategy performance across merchant, payment-method, and failure cohorts.
+
+## Phase 3 — Continuous experimentation
+
+Evaluate recovery strategies through controlled experiments.
+
+## Phase 4 — Advanced risk controls
+
+Expand protection against fraud, abuse, and operational failure modes.
+
+## Phase 5 — Decision API
+
+Expose PulsePay as an infrastructure decision layer that can sit on top of existing payment systems.
+
+The long-term direction is not to replace payment infrastructure.
+
+It is to provide an intelligent, measurable decision layer around revenue recovery.
+
+---
+
+# Why PulsePay
+
+Payment recovery itself is not a new concept.
+
+The interesting engineering problem is what happens **around** recovery.
+
+PulsePay brings together:
 
 ```text
-No Eligible Opportunity
-Prediction Failure
-Invalid Strategy
-Safety Rejection
-Execution Failure
-Already Executed
-```
-
-The application surfaces human-readable errors rather than exposing raw backend stack traces.
-
-If no opportunity is eligible, the system reports that state instead of fabricating a recovery opportunity.
-
----
-
-# ⚠️ Limitations
-
-PulsePay is a buildathon prototype, not a production payment platform.
-
-### Synthetic Data
-
-Current benchmark and demonstration data are synthetic.
-
-### Simulated Recovery
-
-Recovery execution is bounded and designed for controlled demonstration.
-
-### Generalization
-
-Benchmark performance does not guarantee equivalent performance across all real payment environments.
-
-### Production Compliance
-
-Real deployment would require additional regulatory, security, contractual, and provider-specific controls.
-
-### Monitoring
-
-Production use would require continuous model, calibration, feature, and system monitoring.
-
----
-
-# 🏭 Future Roadmap
-
-### Test-Mode Payment Integration
-
-Connect PulsePay to payment-provider sandbox environments.
-
-### Continuous Learning
-
-Use verified recovery outcomes for model improvement.
-
-### Calibration Monitoring
-
-Detect when probability calibration begins to drift.
-
-### Strategy Learning
-
-Improve strategy ranking using observed outcomes.
-
-### Policy Versioning
-
-Track and audit changes to execution policies.
-
-### Production Governance
-
-Add:
-
-* role-based access
-* approval workflows
-* stronger audit retention
-* observability
-* policy rollback
-* advanced risk controls
-
----
-
-# 🆚 PulsePay vs Blind Retry
-
-| Capability                  | Blind Retry | PulsePay |
-| --------------------------- | :---------: | :------: |
-| Detect failure              |      ✅      |     ✅    |
-| Recovery prediction         |      ❌      |     ✅    |
-| Probability calibration     |      ❌      |     ✅    |
-| Expected-value optimization |      ❌      |     ✅    |
-| Strategy comparison         |      ❌      |     ✅    |
-| Deterministic safety gates  |   Limited   |     ✅    |
-| Duplicate protection        |   Limited   |     ✅    |
-| Retry budget                |    Basic    |     ✅    |
-| Counterfactual analysis     |      ❌      |     ✅    |
-| Evidence-backed explanation |      ❌      |     ✅    |
-| Bounded recovery workflow   |      ❌      |     ✅    |
-| Outcome measurement         |    Basic    |     ✅    |
-| Controlled benchmark        |      ❌      |     ✅    |
-
-The difference is not simply:
-
-```text
-Rules vs AI
-```
-
-It is:
-
-```text
-Blind Action
-     VS
-Evidence-Driven Decision
-```
-
----
-
-# 🌐 Long-Term Vision
-
-The broader vision is to build an intelligent financial decision layer where AI can reason about uncertain outcomes while deterministic systems maintain control over high-impact actions.
-
-The reusable pattern is:
-
-```text
-Detect
-  ↓
-Predict
-  ↓
-Calibrate
-  ↓
-Optimize
-  ↓
-Protect
-  ↓
-Execute
-  ↓
-Measure
-```
-
-This architecture can extend beyond payment recovery to other financial operations where automated recommendations require strong execution boundaries.
-
----
-
-# 🎤 60-Second Explanation
-
-> **PulsePay is an evidence-driven AI revenue recovery system for failed payments. Instead of blindly retrying every failure, it estimates recovery probability, calibrates that probability, calculates expected net value, compares alternative recovery strategies, and then passes the recommendation through deterministic safety policies before execution. It records the actual outcome and benchmarks the complete system against blind retry. On a 10,000-record synthetic benchmark with a 7,000/3,000 train-evaluation split, PulsePay achieved ₹1.41 Cr net recovery versus ₹1.16 Cr for blind retry, producing a 21% net lift, with zero duplicate charges and 317 unsafe actions prevented.**
-
----
-
-# 🏆 Key Results
-
-<div align="center">
-
-| Metric                      |           Result |
-| --------------------------- | ---------------: |
-| 💰 Net Recovery             | **₹1,40,64,879** |
-| 📈 Net Value Added          |   **₹24,45,683** |
-| 🚀 Net Lift                 |       **+21.0%** |
-| 🎯 Recovery Precision       |        **96.0%** |
-| 🔄 Recovery Recall          |       **100.0%** |
-| 🛡️ Duplicate Charges       |            **0** |
-| 🚫 Unsafe Actions Prevented |          **317** |
-| 📐 Post-Calibration ECE     |        **14.8%** |
-| 📊 Post-Calibration Brier   |       **0.1483** |
-
-</div>
-
----
-
-# 🔥 The PulsePay Formula
-
-```text
-Recoverability
-      ↓
 Recovery Probability
-      ↓
-Calibration
-      ↓
-Expected Net Value
-      ↓
-Strategy Optimization
-      ↓
-Safety Policies
-      ↓
+        +
+Probability Calibration
+        +
+Expected Economic Value
+        +
+Counterfactual Strategies
+        +
+Deterministic Safety
+        +
 Bounded Execution
-      ↓
-Measured Outcome
+        +
+Outcome Measurement
+        +
+Benchmark Evaluation
 ```
 
-### In one sentence:
+That makes the system answer four questions together:
 
-> **Don't just retry the payment. Decide whether recovery is worth doing.**
+```text
+What should we do?
+        ↓
+Why?
+        ↓
+Is it safe?
+        ↓
+Did it create value?
+```
+
+The project's core identity is therefore:
+
+> **An AI decision layer for revenue recovery — not another retry dashboard.**
 
 ---
 
-# 🔒 Data & Safety Disclosure
+# Final Takeaway
 
-PulsePay uses synthetic data for its buildathon demonstration and benchmark.
+PulsePay starts with a simple business problem:
 
-The reported benchmark results represent a controlled synthetic evaluation and are not production performance guarantees.
+> **Failed payments can become lost revenue.**
 
-The recovery execution environment is bounded and designed for demonstration.
+But the solution is not to retry everything.
 
-The architecture intentionally separates probabilistic ML recommendations from deterministic execution controls.
+A stronger recovery system needs to understand:
+
+```text
+1. Is this payment recoverable?
+
+2. How likely is recovery?
+
+3. How reliable is that probability?
+
+4. Which strategy has the highest expected value?
+
+5. Is the action safe and allowed?
+
+6. What happened after execution?
+
+7. Did the decision create incremental value?
+```
+
+PulsePay turns those questions into one measurable decision loop:
+
+```text
+             DETECT
+                ↓
+              SCORE
+                ↓
+            CALIBRATE
+                ↓
+            OPTIMIZE
+                ↓
+             PROTECT
+                ↓
+             EXECUTE
+                ↓
+             MEASURE
+                │
+                └───────────────↺
+```
+
+**Recover intelligently. Execute safely. Measure what matters.**
 
 ---
 
-<div align="center">
-
-# ⚡ PulsePay
-
-### *Evidence-Driven Recovery*
-
-### *Calibrated Intelligence*
-
-### *Deterministic Control*
-
-<br>
-
-**Detect → Score → Calibrate → Optimize → Protect → Execute → Measure**
-
-<br>
-
-> **ML estimates probability.**
->
-> **Deterministic policies control whether an action is allowed.**
-
-<br>
-
-
-</div>
-```
+<p align="center">
+  <strong>⚡ PulsePay</strong><br>
+  <em>Evidence-driven revenue recovery for the decisions behind every failed payment.</em>
+</p>
