@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getPaymentDetails, getPaymentState, getPaymentTimeline, apiFetch } from '../api';
+import { getPaymentDetails, getPaymentState, getPaymentTimeline } from '../api';
 import { ShieldAlert, CreditCard, Clock, Activity, CheckCircle, ArrowLeft, ArrowRight, XCircle } from 'lucide-react';
 
 const PaymentDetails = () => {
@@ -26,7 +26,7 @@ const PaymentDetails = () => {
       
       // Fetch ML score
       try {
-        const mlRes = await apiFetch(`/api/ml/payments/${id}/anomaly`);
+        const mlRes = await fetch(`/api/ml/payments/${id}/anomaly`);
         if (mlRes.ok) {
           const mlData = await mlRes.json();
           setMlScore(mlData.prediction);

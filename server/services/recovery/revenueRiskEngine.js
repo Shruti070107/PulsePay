@@ -23,8 +23,7 @@ const scanRevenueAtRisk = async (options = {}) => {
   };
   if (merchantId) paymentFilter.merchantId = merchantId;
 
-  const scanPoolLimit = Math.max(limit * 10, 500);
-  const payments = await Payment.find(paymentFilter).sort({ createdAt: -1 }).limit(scanPoolLimit).lean();
+  const payments = await Payment.find(paymentFilter).sort({ createdAt: -1 }).limit(limit).lean();
 
   if (payments.length === 0) {
     return {
@@ -226,7 +225,7 @@ const scanRevenueAtRisk = async (options = {}) => {
     totalOpportunities: opportunities.length,
     eligibleCount: opportunities.filter(o => o.policyStatus === 'ELIGIBLE').length,
     blockedCount: opportunities.filter(o => o.policyStatus === 'BLOCKED').length,
-    opportunities: opportunities.sort((a, b) => b.expectedValue - a.expectedValue).slice(0, limit),
+    opportunities: opportunities.sort((a, b) => b.expectedValue - a.expectedValue),
   };
 };
 

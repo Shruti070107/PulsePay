@@ -2,18 +2,11 @@ const API_BASE = '/api';
 
 export const getAuthToken = () => sessionStorage.getItem('pulsepay_token');
 
-export const apiFetch = (url, options = {}) => {
-  const headers = { ...(options.headers || {}) };
-  const token = getAuthToken();
-  if (token && !headers.Authorization) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-  return fetch(url, { ...options, headers });
-};
-
 export const authRequest = async (path, options = {}) => {
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-  const res = await apiFetch(`${API_BASE}${path}`, { ...options, headers });
+  const token = getAuthToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error?.message || 'Unable to complete the request.');
   return data;
@@ -33,31 +26,31 @@ export const getIncidents = async (filters = {}) => {
   if (filters.status) params.append('status', filters.status);
   if (filters.severity) params.append('severity', filters.severity);
   
-  const res = await apiFetch(`${API_BASE}/incidents?${params.toString()}`);
+  const res = await fetch(`${API_BASE}/incidents?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch incidents');
   return res.json();
 };
 
 export const getIncident = async (id) => {
-  const res = await apiFetch(`${API_BASE}/incidents/${id}`);
+  const res = await fetch(`${API_BASE}/incidents/${id}`);
   if (!res.ok) throw new Error(`Failed to fetch incident ${id}`);
   return res.json();
 };
 
 export const investigateIncident = async (id) => {
-  const res = await apiFetch(`${API_BASE}/incidents/${id}/investigate`, { method: 'POST' });
+  const res = await fetch(`${API_BASE}/incidents/${id}/investigate`, { method: 'POST' });
   if (!res.ok) throw new Error('AI investigation failed');
   return res.json();
 };
 
 export const getIncidentInvestigations = async (id) => {
-  const res = await apiFetch(`${API_BASE}/incidents/${id}/investigations`);
+  const res = await fetch(`${API_BASE}/incidents/${id}/investigations`);
   if (!res.ok) throw new Error('Failed to fetch investigations history');
   return res.json();
 };
 
 export const updateIncidentStatus = async (id, status) => {
-  const res = await apiFetch(`${API_BASE}/incidents/${id}/status`, {
+  const res = await fetch(`${API_BASE}/incidents/${id}/status`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status })
@@ -67,38 +60,38 @@ export const updateIncidentStatus = async (id, status) => {
 };
 
 export const resolveIncident = async (id) => {
-  const res = await apiFetch(`${API_BASE}/incidents/${id}/resolve`, { method: 'POST' });
+  const res = await fetch(`${API_BASE}/incidents/${id}/resolve`, { method: 'POST' });
   if (!res.ok) throw new Error('Failed to resolve incident');
   return res.json();
 };
 
 // Payments & Ledger
 export const getPayments = async () => {
-  const res = await apiFetch(`${API_BASE}/payments`);
+  const res = await fetch(`${API_BASE}/payments`);
   if (!res.ok) throw new Error('Failed to fetch payments');
   return res.json();
 };
 
 export const getPaymentDetails = async (id) => {
-  const res = await apiFetch(`${API_BASE}/payments/${id}`);
+  const res = await fetch(`${API_BASE}/payments/${id}`);
   if (!res.ok) throw new Error(`Failed to fetch payment details ${id}`);
   return res.json();
 };
 
 export const getPaymentState = async (id) => {
-  const res = await apiFetch(`${API_BASE}/payments/${id}/state`);
+  const res = await fetch(`${API_BASE}/payments/${id}/state`);
   if (!res.ok) throw new Error(`Failed to fetch payment state ${id}`);
   return res.json();
 };
 
 export const getPaymentTimeline = async (id) => {
-  const res = await apiFetch(`${API_BASE}/payments/${id}/timeline`);
+  const res = await fetch(`${API_BASE}/payments/${id}/timeline`);
   if (!res.ok) throw new Error(`Failed to fetch timeline for payment ${id}`);
   return res.json();
 };
 
 export const getHealth = async () => {
-  const res = await apiFetch(`${API_BASE}/health`);
+  const res = await fetch(`${API_BASE}/health`);
   if (!res.ok) throw new Error('Failed to fetch API health status');
   return res.json();
 };
@@ -108,13 +101,13 @@ export const getHealth = async () => {
 // ==========================================
 
 export const getRecoveryMetrics = async () => {
-  const res = await apiFetch(`${API_BASE}/recovery/metrics`);
+  const res = await fetch(`${API_BASE}/recovery/metrics`);
   if (!res.ok) throw new Error('Failed to fetch recovery metrics');
   return res.json();
 };
 
 export const scanRecoveryOpportunities = async (params = {}) => {
-  const res = await apiFetch(`${API_BASE}/recovery/scan`, {
+  const res = await fetch(`${API_BASE}/recovery/scan`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -131,19 +124,19 @@ export const getRecoveryOpportunities = async (filters = {}) => {
     }
   });
 
-  const res = await apiFetch(`${API_BASE}/recovery/opportunities?${params.toString()}`);
+  const res = await fetch(`${API_BASE}/recovery/opportunities?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch recovery opportunities');
   return res.json();
 };
 
 export const getRecoveryOpportunity = async (id) => {
-  const res = await apiFetch(`${API_BASE}/recovery/opportunities/${id}`);
+  const res = await fetch(`${API_BASE}/recovery/opportunities/${id}`);
   if (!res.ok) throw new Error(`Failed to fetch recovery opportunity ${id}`);
   return res.json();
 };
 
 export const simulateRecovery = async (params = {}) => {
-  const res = await apiFetch(`${API_BASE}/recovery/simulate`, {
+  const res = await fetch(`${API_BASE}/recovery/simulate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -157,7 +150,7 @@ export const simulateRecovery = async (params = {}) => {
 };
 
 export const executeRecovery = async (params = {}) => {
-  const res = await apiFetch(`${API_BASE}/recovery/execute`, {
+  const res = await fetch(`${API_BASE}/recovery/execute`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -171,13 +164,13 @@ export const executeRecovery = async (params = {}) => {
 };
 
 export const getRecoveryCampaigns = async () => {
-  const res = await apiFetch(`${API_BASE}/recovery/campaigns`);
+  const res = await fetch(`${API_BASE}/recovery/campaigns`);
   if (!res.ok) throw new Error('Failed to fetch recovery campaigns');
   return res.json();
 };
 
 export const createRecoveryCampaign = async (data = {}) => {
-  const res = await apiFetch(`${API_BASE}/recovery/campaigns`, {
+  const res = await fetch(`${API_BASE}/recovery/campaigns`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -191,13 +184,13 @@ export const createRecoveryCampaign = async (data = {}) => {
 };
 
 export const getRecoveryCampaign = async (id) => {
-  const res = await apiFetch(`${API_BASE}/recovery/campaigns/${id}`);
+  const res = await fetch(`${API_BASE}/recovery/campaigns/${id}`);
   if (!res.ok) throw new Error(`Failed to fetch campaign ${id}`);
   return res.json();
 };
 
 export const analyzeRecoveryWithAgent = async (params = {}) => {
-  const res = await apiFetch(`${API_BASE}/recovery/agent/analyze`, {
+  const res = await fetch(`${API_BASE}/recovery/agent/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -211,7 +204,7 @@ export const analyzeRecoveryWithAgent = async (params = {}) => {
 };
 
 export const runRecoveryDemo = async (params = {}) => {
-  const res = await apiFetch(`${API_BASE}/recovery/demo`, {
+  const res = await fetch(`${API_BASE}/recovery/demo`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -225,7 +218,7 @@ export const runRecoveryDemo = async (params = {}) => {
 };
 
 export const evaluateRecovery = async () => {
-  const res = await apiFetch(`${API_BASE}/recovery/evaluate`, { method: 'POST' });
+  const res = await fetch(`${API_BASE}/recovery/evaluate`, { method: 'POST' });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const errorMsg = data.error?.message || data.message || 'Failed to evaluate recovery engine';
@@ -235,7 +228,7 @@ export const evaluateRecovery = async () => {
 };
 
 export const runRecoveryBenchmark = async (params = {}) => {
-  const res = await apiFetch(`${API_BASE}/recovery/benchmark/run`, {
+  const res = await fetch(`${API_BASE}/recovery/benchmark/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -245,38 +238,38 @@ export const runRecoveryBenchmark = async (params = {}) => {
 };
 
 export const getLatestBenchmark = async () => {
-  const res = await apiFetch(`${API_BASE}/recovery/benchmark/latest`);
+  const res = await fetch(`${API_BASE}/recovery/benchmark/latest`);
   if (!res.ok) throw new Error('Failed to fetch latest benchmark');
   return res.json();
 };
 
 export const getBenchmarkById = async (id) => {
-  const res = await apiFetch(`${API_BASE}/recovery/benchmark/${id}`);
+  const res = await fetch(`${API_BASE}/recovery/benchmark/${id}`);
   if (!res.ok) throw new Error(`Failed to fetch benchmark ${id}`);
   return res.json();
 };
 
 export const getBenchmarkResults = async (id, params = {}) => {
   const query = new URLSearchParams(params).toString();
-  const res = await apiFetch(`${API_BASE}/recovery/benchmark/${id}/results?${query}`);
+  const res = await fetch(`${API_BASE}/recovery/benchmark/${id}/results?${query}`);
   if (!res.ok) throw new Error(`Failed to fetch benchmark results`);
   return res.json();
 };
 
 export const getBenchmarkCalibration = async (id) => {
-  const res = await apiFetch(`${API_BASE}/recovery/benchmark/${id}/calibration`);
+  const res = await fetch(`${API_BASE}/recovery/benchmark/${id}/calibration`);
   if (!res.ok) throw new Error(`Failed to fetch benchmark calibration`);
   return res.json();
 };
 
 export const getBenchmarkScenarios = async (id) => {
-  const res = await apiFetch(`${API_BASE}/recovery/benchmark/${id}/scenarios`);
+  const res = await fetch(`${API_BASE}/recovery/benchmark/${id}/scenarios`);
   if (!res.ok) throw new Error(`Failed to fetch benchmark scenarios`);
   return res.json();
 };
 
 export const getBenchmarkBaseline = async (id) => {
-  const res = await apiFetch(`${API_BASE}/recovery/benchmark/${id}/baseline`);
+  const res = await fetch(`${API_BASE}/recovery/benchmark/${id}/baseline`);
   if (!res.ok) throw new Error(`Failed to fetch benchmark baseline`);
   return res.json();
 };
@@ -285,7 +278,7 @@ export const getBenchmarkBaseline = async (id) => {
 export const triggerSimulation = async (scenario, count = 1) => {
   const paymentsCreated = [];
   for (let i = 0; i < count; i++) {
-    const res = await apiFetch(`${API_BASE}/simulator/${scenario}`, {
+    const res = await fetch(`${API_BASE}/simulator/${scenario}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -297,25 +290,25 @@ export const triggerSimulation = async (scenario, count = 1) => {
 };
 
 export const triggerIncidentDetection = async () => {
-  const res = await apiFetch(`${API_BASE}/incidents/detect`, { method: 'POST' });
+  const res = await fetch(`${API_BASE}/incidents/detect`, { method: 'POST' });
   if (!res.ok) throw new Error('Failed to trigger detection');
   return res.json();
 };
 
 export const triggerMLTrain = async () => {
-  const res = await apiFetch(`${API_BASE}/ml/train`, { method: 'POST' });
+  const res = await fetch(`${API_BASE}/ml/train`, { method: 'POST' });
   if (!res.ok) throw new Error('Failed to trigger model training');
   return res.json();
 };
 
 export const triggerAggregator = async () => {
-  const res = await apiFetch(`${API_BASE}/simulator/run-aggregator`, { method: 'POST' });
+  const res = await fetch(`${API_BASE}/simulator/run-aggregator`, { method: 'POST' });
   if (!res.ok) throw new Error('Failed to trigger aggregator');
   return res.json();
 };
 
 export const clearDatabase = async () => {
-  const res = await apiFetch(`${API_BASE}/simulator/clear`, { method: 'POST' });
+  const res = await fetch(`${API_BASE}/simulator/clear`, { method: 'POST' });
   if (!res.ok) throw new Error('Failed to clear database');
   return res.json();
 };
@@ -324,13 +317,13 @@ export const getMerchantBaseline = async (merchantId = '', hours = 24) => {
   const params = new URLSearchParams();
   if (merchantId) params.append('merchantId', merchantId);
   if (hours) params.append('hours', hours);
-  const res = await apiFetch(`${API_BASE}/transactions/baseline?${params.toString()}`);
+  const res = await fetch(`${API_BASE}/transactions/baseline?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch baseline metrics');
   return res.json();
 };
 
 export const runLabScenario = async (scenarioId, overrides = {}) => {
-  const res = await apiFetch(`${API_BASE}/simulator/lab/run`, {
+  const res = await fetch(`${API_BASE}/simulator/lab/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ scenarioId, overrides })
@@ -340,13 +333,13 @@ export const runLabScenario = async (scenarioId, overrides = {}) => {
 };
 
 export const getLabReports = async () => {
-  const res = await apiFetch(`${API_BASE}/simulator/lab/reports`);
+  const res = await fetch(`${API_BASE}/simulator/lab/reports`);
   if (!res.ok) throw new Error('Failed to fetch lab reports');
   return res.json();
 };
 
 export const generateHistoricalData = async (params = {}) => {
-  const res = await apiFetch(`${API_BASE}/simulator/lab/generate-historical`, {
+  const res = await fetch(`${API_BASE}/simulator/lab/generate-historical`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -356,7 +349,7 @@ export const generateHistoricalData = async (params = {}) => {
 };
 
 export const updateIncidentActionStatus = async (incidentId, actionId, status) => {
-  const res = await apiFetch(`${API_BASE}/incidents/${incidentId}/action-status`, {
+  const res = await fetch(`${API_BASE}/incidents/${incidentId}/action-status`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ actionId, status })
@@ -366,7 +359,7 @@ export const updateIncidentActionStatus = async (incidentId, actionId, status) =
 };
 
 export const submitIncidentFeedback = async (incidentId, feedback) => {
-  const res = await apiFetch(`${API_BASE}/incidents/${incidentId}/feedback`, {
+  const res = await fetch(`${API_BASE}/incidents/${incidentId}/feedback`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ feedback })
@@ -376,13 +369,13 @@ export const submitIncidentFeedback = async (incidentId, feedback) => {
 };
 
 export const getIncidentReplay = async (incidentId) => {
-  const res = await apiFetch(`${API_BASE}/incidents/${incidentId}/replay`);
+  const res = await fetch(`${API_BASE}/incidents/${incidentId}/replay`);
   if (!res.ok) throw new Error('Failed to fetch incident replay');
   return res.json();
 };
 
 export const runIncidentWhatIf = async (incidentId, params) => {
-  const res = await apiFetch(`${API_BASE}/incidents/${incidentId}/what-if`, {
+  const res = await fetch(`${API_BASE}/incidents/${incidentId}/what-if`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -392,16 +385,17 @@ export const runIncidentWhatIf = async (incidentId, params) => {
 };
 
 export const triggerDemoMode = async () => {
-  const res = await apiFetch(`${API_BASE}/simulator/demo`, {
+  const res = await fetch(`${API_BASE}/simulator/lab/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ scenarioId: 'WEBHOOK_OUTAGE' })
   });
   if (!res.ok) throw new Error('Failed to trigger demo mode');
   return res.json();
 };
 
 export const validateDataset = async (records) => {
-  const res = await apiFetch(`${API_BASE}/transactions/validate`, {
+  const res = await fetch(`${API_BASE}/transactions/validate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ records })
@@ -411,7 +405,7 @@ export const validateDataset = async (records) => {
 };
 
 export const importDataset = async (records) => {
-  const res = await apiFetch(`${API_BASE}/transactions/import`, {
+  const res = await fetch(`${API_BASE}/transactions/import`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ records })
@@ -421,7 +415,7 @@ export const importDataset = async (records) => {
 };
 
 export const ingestReplayEvent = async (event) => {
-  const res = await apiFetch(`${API_BASE}/transactions/ingest-event`, {
+  const res = await fetch(`${API_BASE}/transactions/ingest-event`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(event)
@@ -431,13 +425,13 @@ export const ingestReplayEvent = async (event) => {
 };
 
 export const getLabScenarios = async () => {
-  const res = await apiFetch(`${API_BASE}/simulator/lab/scenarios`);
+  const res = await fetch(`${API_BASE}/simulator/lab/scenarios`);
   if (!res.ok) throw new Error('Failed to fetch lab scenarios');
   return res.json();
 };
 
 export const triggerLabBaseline = async (count = 15000, seed = 42) => {
-  const res = await apiFetch(`${API_BASE}/simulator/lab/generate-historical`, {
+  const res = await fetch(`${API_BASE}/simulator/lab/generate-historical`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ count, seed })

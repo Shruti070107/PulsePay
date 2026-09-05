@@ -1,13 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-:root {
-  /* Canvas & Surface Tokens — DESIGN_SYSTEM.md */
+:root,
+[data-theme="light"] {
+  /* Canvas & Surface Tokens — Light Theme Default */
   --canvas:            #F7F8FA;
   --surface:           #FFFFFF;
+  --elevated-surface:  #FFFFFF;
   --subtle:            #F1F5F9;
   --hover-surface:     #F8FAFC;
 
-  /* Legacy aliases (keep for backward-compat with existing pages) */
+  /* Legacy aliases */
   --bg-primary:        #F7F8FA;
   --bg-secondary:      #FFFFFF;
   --bg-tertiary:       #F1F5F9;
@@ -33,17 +35,20 @@
   --color-blue-bg:     #EFF6FF;
   --color-blue-border: #BFDBFE;
 
-  --color-success:     #059669;
-  --color-success-bg:  #ECFDF5;
+  --color-success:        #059669;
+  --color-success-hover:  #047857;
+  --color-success-bg:     #ECFDF5;
   --color-success-border: #A7F3D0;
 
-  --color-warning:     #D97706;
-  --color-warning-bg:  #FFFBEB;
+  --color-warning:        #D97706;
+  --color-warning-hover:  #B45309;
+  --color-warning-bg:     #FFFBEB;
   --color-warning-border: #FDE68A;
 
-  --color-danger:      #DC2626;
-  --color-danger-bg:   #FEF2F2;
-  --color-danger-border: #FECACA;
+  --color-danger:         #DC2626;
+  --color-danger-hover:   #B91C1C;
+  --color-danger-bg:      #FEF2F2;
+  --color-danger-border:  #FECACA;
 
   --color-info:        #0284C7;
   --color-info-hover:  #0369A1;
@@ -60,6 +65,15 @@
   --color-critical-bg:       #FEF2F2;
   --color-critical-border:   #FECACA;
 
+  /* Sidebar Tokens (Light Theme) */
+  --sidebar-bg:              #0F172A;
+  --sidebar-border:          #1E293B;
+  --sidebar-text:            #CBD5E1;
+  --sidebar-text-muted:      #94A3B8;
+  --sidebar-hover-bg:        #1E293B;
+  --sidebar-active-bg:       #1D4ED8;
+  --sidebar-active-border:   #2563EB;
+
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
@@ -75,6 +89,85 @@
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 2px 4px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 4px 8px rgba(15, 23, 42, 0.10);
+}
+
+[data-theme="dark"] {
+  /* Canvas & Surface Tokens — Mature Fintech Dark */
+  --canvas:            #0B0F14;
+  --surface:           #111827;
+  --elevated-surface:  #172033;
+  --subtle:            #1E293B;
+  --hover-surface:     #172033;
+
+  /* Legacy aliases */
+  --bg-primary:        #0B0F14;
+  --bg-secondary:      #111827;
+  --bg-tertiary:       #1E293B;
+  --bg-elevated:       #172033;
+  --bg-hover:          #172033;
+  --bg-active:         #1E293B;
+
+  /* Border Tokens */
+  --border-color:      rgba(255, 255, 255, 0.08);
+  --border-subtle:     rgba(255, 255, 255, 0.05);
+  --border-hover:      rgba(255, 255, 255, 0.16);
+  --border-active:     #3B82F6;
+
+  /* Typography Colors */
+  --text-primary:      #F8FAFC;
+  --text-secondary:    #CBD5E1;
+  --text-muted:        #94A3B8;
+  --text-disabled:     #64748B;
+
+  /* Semantic Color System */
+  --color-blue:        #3B82F6;
+  --color-blue-hover:  #60A5FA;
+  --color-blue-bg:     rgba(59, 130, 246, 0.12);
+  --color-blue-border: rgba(59, 130, 246, 0.28);
+
+  --color-success:        #10B981;
+  --color-success-hover:  #34D399;
+  --color-success-bg:     rgba(16, 185, 129, 0.12);
+  --color-success-border: rgba(16, 185, 129, 0.28);
+
+  --color-warning:        #F59E0B;
+  --color-warning-hover:  #FBBF24;
+  --color-warning-bg:     rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.28);
+
+  --color-danger:         #EF4444;
+  --color-danger-hover:   #F87171;
+  --color-danger-bg:      rgba(239, 68, 68, 0.12);
+  --color-danger-border:  rgba(239, 68, 68, 0.28);
+
+  --color-info:        #38BDF8;
+  --color-info-hover:  #7DD3FC;
+  --color-info-bg:     rgba(56, 189, 248, 0.12);
+  --color-info-border: rgba(56, 189, 248, 0.28);
+
+  /* Legacy semantic aliases */
+  --color-accent:            #3B82F6;
+  --color-accent-bg:         rgba(59, 130, 246, 0.12);
+  --color-healthy:           #10B981;
+  --color-healthy-bg:        rgba(16, 185, 129, 0.12);
+  --color-healthy-border:    rgba(16, 185, 129, 0.28);
+  --color-critical:          #EF4444;
+  --color-critical-bg:       rgba(239, 68, 68, 0.12);
+  --color-critical-border:   rgba(239, 68, 68, 0.28);
+
+  /* Sidebar Tokens (Dark Theme) */
+  --sidebar-bg:              #111827;
+  --sidebar-border:          rgba(255, 255, 255, 0.08);
+  --sidebar-text:            #CBD5E1;
+  --sidebar-text-muted:      #94A3B8;
+  --sidebar-hover-bg:        #1E293B;
+  --sidebar-active-bg:       rgba(59, 130, 246, 0.20);
+  --sidebar-active-border:   #3B82F6;
+
+  /* Shadows — mature fintech, no glowing neon */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 4px 10px rgba(0, 0, 0, 0.55);
 }
 
 /* ============================================================
@@ -129,8 +222,8 @@ a:hover { color: var(--color-blue-hover); text-decoration: underline; }
 ============================================================ */
 .sidebar {
   width: 240px;
-  background-color: #0F172A;
-  border-right: 1px solid #1E293B;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
   padding: 20px 14px;
   display: flex;
   flex-direction: column;
@@ -140,20 +233,55 @@ a:hover { color: var(--color-blue-hover); text-decoration: underline; }
   top: 0;
   z-index: 40;
   overflow-y: auto;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .sidebar .logo h1,
 .sidebar .logo div,
 .sidebar .logo div div { color: #F8FAFC !important; }
-.sidebar .nav-link { color: #CBD5E1; }
-.sidebar .nav-link:hover { color: #FFFFFF; background-color: #1E293B; border-color: #334155; }
-.sidebar .nav-link.active { color: #FFFFFF; background-color: #1D4ED8; border-color: #2563EB; }
+.sidebar .nav-link { color: var(--sidebar-text); }
+.sidebar .nav-link:hover { color: #FFFFFF; background-color: var(--sidebar-hover-bg); border-color: transparent; }
+.sidebar .nav-link.active { color: #FFFFFF; background-color: var(--sidebar-active-bg); border-color: var(--sidebar-active-border); }
 .sidebar .nav-link.active svg { color: #FFFFFF; }
-.sidebar .nav-links button { color: #94A3B8 !important; }
-.sidebar > div:last-child { border-color: #334155 !important; }
-.sidebar > div:last-child div { color: #CBD5E1 !important; }
-.sidebar > div:last-child div div { color: #34D399 !important; }
-.sidebar > div:last-child button { color: #CBD5E1 !important; }
+.sidebar .nav-links button { color: var(--sidebar-text-muted) !important; }
+.sidebar > div:last-child { border-color: var(--sidebar-border) !important; }
+.sidebar > div:last-child div { color: var(--sidebar-text) !important; }
+.sidebar > div:last-child div div { color: var(--color-healthy) !important; }
+.sidebar > div:last-child button { color: var(--sidebar-text) !important; }
+
+/* Chrome Sidebar Theme Toggle */
+.chrome-theme-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--subtle);
+  border: 1px solid var(--sidebar-border);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  color: var(--sidebar-text);
+  font-size: 0.74rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.chrome-theme-toggle:hover {
+  background: var(--sidebar-hover-bg);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.theme-toggle-pill {
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sidebar-text);
+}
 
 .main-content {
   flex: 1;
@@ -567,11 +695,38 @@ input::placeholder, textarea::placeholder {
    AUTH PAGES
 ============================================================ */
 .auth-shell {
+  position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 24px;
   background: var(--canvas);
+}
+
+.auth-theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.12s ease;
+  font-family: var(--font-sans);
+}
+
+.auth-theme-toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+  background: var(--hover-surface);
 }
 
 .auth-panel {

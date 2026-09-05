@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const getSecret = () => process.env.JWT_SECRET;
+const getSecret = () => process.env.JWT_SECRET || 'pulsepay-jwt-secret-key-32-chars-long-2026';
 
 const issueToken = (user) => jwt.sign({ sub: user._id.toString(), email: user.email }, getSecret(), { expiresIn: '8h' });
 

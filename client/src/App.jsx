@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, RotateCcw, Compass, Scale, ChevronDown, ChevronRight,
-  CreditCard, AlertCircle, Terminal, Target, Activity, ShieldCheck, HelpCircle, LogOut, MessageSquare, Menu, X
+  CreditCard, AlertCircle, Terminal, Target, Activity, ShieldCheck, HelpCircle, LogOut, MessageSquare, Menu, X,
+  Sun, Moon
 } from 'lucide-react';
+import { useTheme } from './context/ThemeContext';
 
 import { ToastProvider } from './components/Toast';
 import Login from './pages/Login';
@@ -33,6 +35,7 @@ function ProtectedRoute({ children, isAuthenticated }) {
 function AppLayout({ isAuthenticated, setIsAuthenticated }) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -41,7 +44,7 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
     return <Login onLogin={() => setIsAuthenticated(true)} />;
   }
 
-  // Handle subtle demo sign-out
+  // Handle user sign-out
   const handleSignOut = () => {
     logoutUser().catch(() => {});
     sessionStorage.removeItem('pulsepay_auth');
@@ -191,8 +194,25 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             </ul>
           </nav>
 
+          {/* Light / Dark Theme Toggle in Application Chrome */}
+          <div style={{ padding: '10px 4px 6px', borderTop: '1px solid var(--sidebar-border)' }}>
+            <button
+              id="theme-toggle"
+              onClick={toggleTheme}
+              className="chrome-theme-toggle"
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+                <span>{theme === 'dark' ? 'Light Theme' : 'Dark Theme'}</span>
+              </div>
+              <span className="theme-toggle-pill">{theme.toUpperCase()}</span>
+            </button>
+          </div>
+
           {/* Footer Status & Sign Out */}
-          <div style={{ padding: '12px 6px', fontSize: '0.72rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ padding: '10px 6px', fontSize: '0.72rem', color: 'var(--text-muted)', borderTop: '1px solid var(--sidebar-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>PulsePay AI Recovery</div>
               <div style={{ fontSize: '0.68rem', color: 'var(--color-healthy)', display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
@@ -215,7 +235,7 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
                 gap: '4px',
                 transition: 'color 0.15s ease'
               }}
-              title="End demo session"
+              title="Sign out of PulsePay"
             >
               <LogOut size={12} />
               <span>Sign out</span>

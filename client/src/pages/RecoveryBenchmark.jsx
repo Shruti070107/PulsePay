@@ -345,7 +345,7 @@ const RecoveryBenchmark = () => {
       )}
 
       {/* 3. CURRENT LIMITATIONS SECTION */}
-      <div className="card" style={{ padding: '18px 24px', background: 'rgba(255, 255, 255, 0.02)' }}>
+      <div className="card" style={{ padding: '18px 24px', background: 'var(--subtle)' }}>
         <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '8px' }}>
           Current Limitations & Scope
         </h4>

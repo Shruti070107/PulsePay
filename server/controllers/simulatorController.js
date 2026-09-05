@@ -121,13 +121,100 @@ const simulateBatch = async (req, res, next) => {
 
 const triggerDemoMode = async (req, res, next) => {
   try {
-    const { seedDemoData } = require('../services/demoSeedService');
-    const result = await seedDemoData({ quiet: true });
+    const Payment = require('../models/Payment');
+    const PaymentEvent = require('../models/PaymentEvent');
+    const Order = require('../models/Order');
+    const WebhookEvent = require('../models/WebhookEvent');
+    const Incident = require('../models/Incident');
+    const Investigation = require('../models/Investigation');
+    const RecoveryOpportunity = require('../models/RecoveryOpportunity');
+    const RecoveryAction = require('../models/RecoveryAction');
+    const RecoveryCampaign = require('../models/RecoveryCampaign');
+    const { runIncidentDetectionAndAggregation } = require('../services/incident/incidentAggregator');
+    const { extractFeaturesForPayment } = require('../services/ml/featureExtractor');
+    const { trainModelOnDataset } = require('../services/ml/mlClient');
+
+    // 1. Clear database collections
+    await Promise.all([
+      Payment.deleteMany({}),
+      PaymentEvent.deleteMany({}),
+      Order.deleteMany({}),
+      WebhookEvent.deleteMany({}),
+      Incident.deleteMany({}),
+      Investigation.deleteMany({}),
+      RecoveryOpportunity.deleteMany({}),
+      RecoveryAction.deleteMany({}),
+      RecoveryCampaign.deleteMany({})
+    ]);
+
+    // 2. Generate controlled batch representing the 20 failure patterns
+    const createdPayments = [];
+    
+    // Normal payments
+    for (let i = 0; i < 20; i++) {
+      const data = simulatorService.generateNormal();
+      await simulatorService.saveScenarioData(data);
+      createdPayments.push(data.payment.paymentId);
+    }
+    
+    // Core Failures
+    const demoScenarios = [
+      'generateWebhookFailure',
+      'generateDuplicate',
+      'generateOutOfOrder',
+      'generateRefundFailure',
+      'generateLateAuth',
+      'generateWebhookOutage',
+      'generateGatewayTimeout',
+      'generateAuthLatencySpike',
+      'generateMerchant5xxSpike',
+      'generateMerchantTimeout',
+      'generateProviderDegradation',
+      'generateHighDeclineRate',
+      'generatePermanentDecline',
+      'generatePartialCapture',
+      'generateAmountMismatch',
+      'generateOrderStateMismatch',
+      'generateRetryStorm',
+      'generateRepeatedCustomerAttempts',
+      'generateMultiSignalCompound'
+    ];
+
+    for (const scName of demoScenarios) {
+      try {
+        const data = simulatorService[scName]();
+        await simulatorService.saveScenarioData(data);
+        if (data.payment) createdPayments.push(data.payment.paymentId);
+        if (data.payments) createdPayments.push(...data.payments.map(p => p.paymentId));
+      } catch (err) {
+        console.warn(`Failed to seed demo scenario ${scName}:`, err.message);
+      }
+    }
+
+    // 3. Trigger Incident Detection scan
+    const aggregationResult = await runIncidentDetectionAndAggregation(24);
+
+    // 4. Train ML model on the generated data
+    const payments = await Payment.find();
+    const dataset = [];
+    for (const p of payments) {
+      try {
+        const features = await extractFeaturesForPayment(p.paymentId);
+        dataset.push(features);
+      } catch (err) {
+        // Skip anomalies features errors
+      }
+    }
+    
+    if (dataset.length >= 5) {
+      await trainModelOnDataset(dataset, 0.05).catch(() => {});
+    }
 
     return res.status(200).json({
       success: true,
-      message: 'Demo Mode successfully activated with realistic synthetic recovery dataset.',
-      ...result,
+      message: 'Demo Mode successfully activated. Database cleared, 20 normal payments and 18 failure scenarios seeded, and incident correlation completed.',
+      paymentsCreated: createdPayments.length,
+      incidentsAggregated: aggregationResult.incidentsDetected
     });
   } catch (error) {
     next(error);

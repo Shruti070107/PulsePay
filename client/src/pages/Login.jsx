@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { loginUser, registerUser } from '../api';
-import { Activity, Eye, EyeOff } from 'lucide-react';
-
-const DEMO_EMAIL = 'ops@pulsepay.internal';
-const DEMO_PASSWORD = 'demo12345';
+import { loginUser } from '../api';
+import { Activity, Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const getReturnPath = (from) => {
   if (!from) return '/';
@@ -16,6 +14,7 @@ const getReturnPath = (from) => {
 const Login = ({ onLogin }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -47,26 +46,19 @@ const Login = ({ onLogin }) => {
     }
   };
 
-  const handleQuickDemo = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      let result;
-      try {
-        result = await loginUser({ email: DEMO_EMAIL, password: DEMO_PASSWORD });
-      } catch {
-        result = await registerUser({ name: 'Demo Operator', email: DEMO_EMAIL, password: DEMO_PASSWORD, confirmPassword: DEMO_PASSWORD });
-      }
-      authenticate(result.data.token);
-    } catch (err) {
-      setError(err.message || 'Unable to start the demo session. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="auth-shell">
+      <button
+        id="auth-theme-toggle"
+        onClick={toggleTheme}
+        className="auth-theme-toggle"
+        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+      >
+        {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+        <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+      </button>
+
       <div className="auth-panel">
 
         {/* Brand */}
@@ -135,19 +127,6 @@ const Login = ({ onLogin }) => {
             {loading ? 'Signing in…' : 'Sign in to PulsePay'}
           </button>
         </form>
-
-        <div className="auth-divider" style={{ margin: '16px 0 12px' }}>or</div>
-
-        <button
-          id="demo-signin"
-          type="button"
-          className="btn btn-secondary"
-          onClick={handleQuickDemo}
-          disabled={loading}
-          style={{ width: '100%' }}
-        >
-          Quick Demo Sign-In
-        </button>
 
         <p className="auth-switch">
           Don't have an account? <Link to="/register">Create account</Link>
