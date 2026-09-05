@@ -13,6 +13,7 @@ import Register from './pages/Register';
 import { getCurrentUser, logoutUser } from './api';
 import Dashboard from './pages/Dashboard';
 import Recovery from './pages/Recovery';
+import PaymentInvestigation from './pages/PaymentInvestigation';
 import PaymentRecoveryDetail from './pages/PaymentRecoveryDetail';
 import Campaigns from './pages/Campaigns';
 import RecoveryBenchmark from './pages/RecoveryBenchmark';
@@ -249,7 +250,7 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             <Route path="/recovery" element={<Recovery />} />
             
             {/* Payment Investigation Routes */}
-            <Route path="/investigation" element={<PaymentRecoveryDetail />} />
+            <Route path="/investigation" element={<PaymentInvestigation />} />
             <Route path="/investigation/:id" element={<PaymentRecoveryDetail />} />
             
             {/* Experiments / Benchmark Routes */}

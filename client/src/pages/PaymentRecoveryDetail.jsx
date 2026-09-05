@@ -137,8 +137,8 @@ const PaymentRecoveryDetail = () => {
 
   if (error) return (
     <div style={{ padding: 32 }}>
-      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/recovery')} style={{ marginBottom: 16 }}>
-        <ArrowLeft size={14} /> Back to Queue
+      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/investigation')} style={{ marginBottom: 16 }}>
+        <ArrowLeft size={14} /> Back to Payment Investigation
       </button>
       <div style={{ padding: '20px 24px', background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', borderRadius: 'var(--radius-lg)', color: 'var(--color-danger)', fontSize: '0.84rem' }}>
         {error}
@@ -160,15 +160,15 @@ const PaymentRecoveryDetail = () => {
 
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="page-header">
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{ marginBottom: 6 }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/recovery')} style={{ padding: '4px 0', color: 'var(--text-muted)' }}>
-              <ArrowLeft size={13} /> Recovery Queue
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/investigation')} style={{ padding: '4px 0', color: 'var(--text-muted)' }}>
+              <ArrowLeft size={13} /> Payment Investigation
             </button>
           </div>
           <h1>Payment Decision Record</h1>
-          <p style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-            <span className="font-mono" style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{opp.paymentId}</span>
+          <p style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+            <span className="font-mono" style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', wordBreak: 'break-all' }}>{opp.paymentId}</span>
             {opp.policyStatus?.toUpperCase() === 'ELIGIBLE'
               ? <span className="badge badge-success">Eligible</span>
               : <span className="badge badge-danger">Blocked</span>}
@@ -177,7 +177,7 @@ const PaymentRecoveryDetail = () => {
               : <span className="badge badge-info">{opp.status || 'Pending'}</span>}
           </p>
         </div>
-        <div className="page-header-actions">
+        <div className="page-header-actions" style={{ flexWrap: 'wrap' }}>
           <button className="btn btn-secondary" onClick={handleSimulate} disabled={simulating} id="simulate-btn">
             <Play size={13} className={simulating ? 'animate-spin' : ''} />
             {simulating ? 'Simulating…' : 'Simulate Recovery'}
@@ -199,7 +199,7 @@ const PaymentRecoveryDetail = () => {
       <div className="decision-section">
         <SectionHeader title="Payment Details" icon={Info} />
         <div className="decision-section-body">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px 24px' }}>
+          <div className="payment-details-grid">
             {[
               { label: 'Payment ID',       value: opp.paymentId,                          mono: true },
               { label: 'Amount',           value: fmt(opp.amount),                        bold: true },
@@ -211,9 +211,9 @@ const PaymentRecoveryDetail = () => {
               { label: 'Order ID',         value: opp.orderId || '—',       mono: true },
               { label: 'Merchant ID',      value: opp.merchantId || '—',    mono: true },
             ].map(({ label, value, mono, bold, danger }) => (
-              <div key={label}>
+              <div key={label} className="payment-detail-item">
                 <div className="kpi-label" style={{ marginBottom: 3 }}>{label}</div>
-                <div className={`${mono ? 'font-mono' : ''}`} style={{ fontSize: '0.88rem', fontWeight: bold ? 700 : 500, color: danger ? 'var(--color-danger)' : 'var(--text-primary)' }}>
+                <div className={`payment-detail-value ${mono ? 'font-mono' : ''}`} style={{ fontWeight: bold ? 700 : 500, color: danger ? 'var(--color-danger)' : 'var(--text-primary)' }}>
                   {value}
                 </div>
               </div>
@@ -259,22 +259,22 @@ const PaymentRecoveryDetail = () => {
       <div className="decision-section">
         <SectionHeader title="PulsePay Decision" icon={TrendingUp} />
         <div className="decision-section-body">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px 24px' }}>
-            <div>
+          <div className="decision-metrics-grid">
+            <div className="decision-metric-item">
               <div className="kpi-label" style={{ marginBottom: 4 }}>Raw ML Probability</div>
               <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {opp.rawProbability == null ? 'Not available' : pct(opp.rawProbability * 100)}
               </div>
               <div className="kpi-sub">Uncalibrated</div>
             </div>
-            <div>
+            <div className="decision-metric-item">
               <div className="kpi-label" style={{ marginBottom: 4 }}>Calibrated Probability</div>
               <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--color-blue)' }}>
                 {opp.recoveryProbability == null ? 'Not available' : pct(opp.recoveryProbability * 100)}
               </div>
               <div className="kpi-sub">Isotonic Regression</div>
             </div>
-            <div>
+            <div className="decision-metric-item">
               <div className="kpi-label" style={{ marginBottom: 4 }}>Expected Recovery Value</div>
               <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--color-success)' }}>
                 {fmt(opp.expectedValue ?? opp.estimatedRecoverableAmount)}
@@ -405,7 +405,7 @@ const PaymentRecoveryDetail = () => {
       {/* ── Deterministic Safety Preflight ────────────────────── */}
       <div className="decision-section">
         <SectionHeader
-          title="Deterministic Safety"
+          title="Safety Checks"
           icon={ShieldCheck}
           badge={
             policyChecks.length > 0
@@ -495,16 +495,16 @@ const PaymentRecoveryDetail = () => {
           <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--color-info)', marginBottom: 8 }}>
             Simulation Result
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            <div>
+          <div className="simulation-metrics-grid">
+            <div className="decision-metric-item">
               <div className="kpi-label">Expected Recovery</div>
               <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: 3 }}>{fmt(simResult.expectedRecoveredAmount)}</div>
             </div>
-            <div>
+            <div className="decision-metric-item">
               <div className="kpi-label">Opportunities Targeted</div>
               <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: 3 }}>{simResult.transactionsTargeted ?? '—'}</div>
             </div>
-            <div>
+            <div className="decision-metric-item">
               <div className="kpi-label">Policy Blocked</div>
               <div style={{ fontWeight: 700, color: 'var(--color-danger)', marginTop: 3 }}>{simResult.policyBlockedCount ?? '—'}</div>
             </div>
