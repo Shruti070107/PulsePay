@@ -98,12 +98,17 @@ app.use((req, res) => {
 // Central Error Handler
 app.use((err, req, res, next) => {
   console.error('[Central Error Handler] Caught error:', err);
-  const statusCode = err.status || 500;
+  const statusCode = err.status || (err.statusCode && typeof err.statusCode === 'number' ? err.statusCode : 500);
+  const isServerFault = statusCode >= 500;
+  const safeMessage = isServerFault
+    ? 'An unexpected server error occurred. Please try again later.'
+    : (err.message || 'Request could not be processed.');
+
   return res.status(statusCode).json({
     success: false,
     error: {
-      code: err.code || 'INTERNAL_ERROR',
-      message: err.message || 'An unexpected server error occurred.'
+      code: err.code || (isServerFault ? 'INTERNAL_ERROR' : 'BAD_REQUEST'),
+      message: safeMessage
     }
   });
 });

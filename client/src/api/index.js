@@ -8,7 +8,28 @@ export const authRequest = async (path, options = {}) => {
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error?.message || 'Unable to complete the request.');
+  if (!res.ok) {
+    const rawMsg = data.error?.message || (typeof data.error === 'string' ? data.error : null) || data.message;
+    if (rawMsg && typeof rawMsg === 'string') {
+      const isInternalLeak = /at\s+|node_modules|jwt_secret|passwordhash|mongodb|internal_error|illegal\s+arguments/i.test(rawMsg);
+      if (!isInternalLeak) {
+        throw new Error(rawMsg);
+      }
+    }
+    if (res.status === 401) {
+      throw new Error('Email or password is incorrect.');
+    }
+    if (res.status === 409) {
+      throw new Error('An account with this email already exists. Please sign in instead.');
+    }
+    if (res.status === 400) {
+      throw new Error('Invalid request details. Please check your inputs.');
+    }
+    if (res.status >= 500) {
+      throw new Error('Account service is temporarily unavailable. Please try again shortly.');
+    }
+    throw new Error('Unable to complete the request. Please try again.');
+  }
   return data;
 };
 

@@ -2,11 +2,14 @@ const jwt = require('jsonwebtoken');
 
 const getSecret = () => process.env.JWT_SECRET || 'pulsepay-jwt-secret-key-32-chars-long-2026';
 
-const issueToken = (user) => jwt.sign({ sub: user._id.toString(), email: user.email }, getSecret(), { expiresIn: '8h' });
+const issueToken = (user) => {
+  const id = (user._id || user.id || '').toString();
+  return jwt.sign({ sub: id, email: user.email }, getSecret(), { expiresIn: '8h' });
+};
 
 const requireAuth = (req, res, next) => {
   const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : null;
   if (!token) return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Your session has expired. Please sign in again.' } });
   try {
     req.user = jwt.verify(token, getSecret());
